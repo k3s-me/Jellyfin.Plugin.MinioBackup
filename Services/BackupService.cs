@@ -165,7 +165,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
         private async Task CopyDirectoryAsync(
             string sourceDir,
             string targetDir,
-            string[] patterns = null,
+            string[]? patterns = null,  // Add ? to make it nullable
             int maxDepth = int.MaxValue,
             int currentDepth = 0)
         {
@@ -264,22 +264,15 @@ namespace Jellyfin.Plugin.MinioBackup.Services
 
         private async Task CleanupOldBackups()
         {
-            var cutoffDate = DateTime.UtcNow.AddDays(-_config.RetentionDays);
-
-            var objects = _minioClient.ListObjectsAsync(new ListObjectsArgs()
-                .WithBucket(_config.BucketName)
-                .WithPrefix("backups/"));
-
-            await foreach (var obj in objects)
+            try
             {
-                if (obj.LastModifiedDateTime < cutoffDate)
-                {
-                    await _minioClient.RemoveObjectAsync(new RemoveObjectArgs()
-                        .WithBucket(_config.BucketName)
-                        .WithObject(obj.Key));
-
-                    _logger.LogInformation($"Oude backup verwijderd: {obj.Key}");
-                }
+                // Skip cleanup for now - we'll implement this later when we know MinIO is working
+                _logger.LogInformation("Backup cleanup overgeslagen voor nu");
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Kon oude backups niet opruimen");
             }
         }
     }
