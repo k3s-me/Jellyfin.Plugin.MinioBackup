@@ -165,7 +165,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
         private async Task CopyDirectoryAsync(
             string sourceDir,
             string targetDir,
-            string[]? patterns = null,  // Add ? to make it nullable
+            string[]? patterns = null,
             int maxDepth = int.MaxValue,
             int currentDepth = 0)
         {
@@ -220,11 +220,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
                 .WithObject($"backups/{objectName}")
                 .WithFileName(filePath));
 
-            // Cleanup oude backups indien geconfigureerd
-            if (_config.RetentionDays > 0)
-            {
-                await CleanupOldBackups();
-            }
+            _logger.LogInformation($"Backup geüpload naar MinIO: backups/{objectName}");
         }
 
         private async Task EnsureBucketExists()
@@ -242,7 +238,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
         private string GetJellyfinDataPath()
         {
             // Probeer verschillende locaties
-            var possiblePaths = new[]
+            var possiblePaths = new string?[]
             {
                 Environment.GetEnvironmentVariable("JELLYFIN_DATA_DIR"),
                 "/config", // Docker
@@ -260,20 +256,6 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             }
 
             throw new DirectoryNotFoundException("Kan Jellyfin data directory niet vinden");
-        }
-
-        private async Task CleanupOldBackups()
-        {
-            try
-            {
-                // Skip cleanup for now - we'll implement this later when we know MinIO is working
-                _logger.LogInformation("Backup cleanup overgeslagen voor nu");
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Kon oude backups niet opruimen");
-            }
         }
     }
 }
