@@ -1,0 +1,13 @@
+{
+  "guid": "12345678-1234-1234-1234-123456789012",
+  "name": "MinIO Backup Plugin",
+  "description": "Backup Jellyfin data to MinIO storage",
+  "overview": "Automatically backup your Jellyfin configuration and database to MinIO object storage",
+  "owner": "Sander Sneekes",
+  "category": "General",
+  "version": "1.0.0.0",
+  "changelog": "Initial release",
+  "targetAbi": "10.8.0.0",
+  "framework": "net6.0",
+  "timestamp": "2024-01-01T00:00:00Z"
+}
