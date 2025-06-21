@@ -1,10 +1,55 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <OutputType>Exe</OutputType>
         <TargetFramework>net8.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
+        <AssemblyVersion>1.0.0.0</AssemblyVersion>
+        <FileVersion>1.0.0.0</FileVersion>
+        <AssemblyTitle>Jellyfin MinIO Backup Plugin</AssemblyTitle>
+        <Product>Jellyfin Server</Product>
+        <Copyright>Copyright © Your Name 2024</Copyright>
+        <Description>Backup Jellyfin data to MinIO object storage</Description>
+
+        <!-- C# Language features -->
+        <LangVersion>12.0</LangVersion>
         <Nullable>enable</Nullable>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+        <!-- Plugin specific -->
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+        <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     </PropertyGroup>
+
+    <!-- Jellyfin Dependencies -->
+    <ItemGroup>
+        <PackageReference Include="Jellyfin.Controller" Version="10.9.11" />
+        <PackageReference Include="Jellyfin.Model" Version="10.9.11" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+    </ItemGroup>
+
+    <!-- MinIO and Database Dependencies -->
+    <ItemGroup>
+        <PackageReference Include="Minio" Version="6.0.3" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
+    </ItemGroup>
+
+    <!-- Build Output -->
+    <ItemGroup>
+        <None Include="manifest.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <!-- Exclude unnecessary files from build -->
+    <ItemGroup>
+        <Compile Remove="bin\**" />
+        <Compile Remove="obj\**" />
+        <EmbeddedResource Remove="bin\**" />
+        <EmbeddedResource Remove="obj\**" />
+        <None Remove="bin\**" />
+        <None Remove="obj\**" />
+    </ItemGroup>
 
 </Project>
