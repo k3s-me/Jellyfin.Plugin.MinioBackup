@@ -6,7 +6,7 @@
         <FileVersion>1.0.0.0</FileVersion>
         <AssemblyTitle>Jellyfin MinIO Backup Plugin</AssemblyTitle>
         <Product>Jellyfin Server</Product>
-        <Copyright>Copyright © Your Name 2024</Copyright>
+        <Copyright>Copyright © Sander Sneekes 2024</Copyright>
         <Description>Backup Jellyfin data to MinIO object storage</Description>
 
         <!-- C# Language features -->
@@ -20,16 +20,13 @@
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     </PropertyGroup>
 
-    <!-- Jellyfin Dependencies -->
+    <!-- Jellyfin Dependencies - Let Jellyfin determine the Microsoft.Extensions versions -->
     <ItemGroup>
-        <PackageReference Include="Jellyfin.Controller" Version="10.9.11" />
-        <PackageReference Include="Jellyfin.Model" Version="10.9.11" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+        <PackageReference Include="Jellyfin.Controller" Version="10.10.7" />
+        <PackageReference Include="Jellyfin.Model" Version="10.10.7" />
     </ItemGroup>
 
-    <!-- MinIO and Database Dependencies -->
+    <!-- External Dependencies -->
     <ItemGroup>
         <PackageReference Include="Minio" Version="6.0.3" />
         <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />

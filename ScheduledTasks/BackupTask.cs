@@ -1,5 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using MediaBrowser.Model.Tasks;
 using Microsoft.Extensions.Logging;
+using Jellyfin.Plugin.MinioBackup.Services;
 
 namespace Jellyfin.Plugin.MinioBackup.ScheduledTasks
 {
@@ -19,13 +24,14 @@ namespace Jellyfin.Plugin.MinioBackup.ScheduledTasks
             _backupService = backupService;
         }
 
-        public async Task Execute(CancellationToken cancellationToken, IProgress<double> progress)
+        // Probeer beide method signatures
+        public async Task ExecuteAsync(IProgress<double>? progress, CancellationToken cancellationToken)
         {
             progress?.Report(0);
 
             try
             {
-                await _backupService.CreateBackup();
+                await _backupService.CreateFullBackup();
                 progress?.Report(100);
             }
             catch (Exception ex)
@@ -33,6 +39,12 @@ namespace Jellyfin.Plugin.MinioBackup.ScheduledTasks
                 _logger.LogError(ex, "Backup task gefaald");
                 throw;
             }
+        }
+
+        // Fallback voor oudere Jellyfin versies
+        public async Task Execute(CancellationToken cancellationToken, IProgress<double>? progress)
+        {
+            await ExecuteAsync(progress, cancellationToken);
         }
 
         public IEnumerable<TaskTriggerInfo> GetDefaultTriggers()

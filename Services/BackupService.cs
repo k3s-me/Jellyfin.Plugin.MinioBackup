@@ -1,6 +1,13 @@
+using System;
+using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Data.Sqlite;
 using Minio;
 using Minio.DataModel.Args;
+using Jellyfin.Plugin.MinioBackup.Configuration;
 
 namespace Jellyfin.Plugin.MinioBackup.Services
 {
@@ -192,7 +199,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             try
             {
                 // SQLite checkpoint om WAL file te legen
-                using var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={dbPath}");
+                using var connection = new SqliteConnection($"Data Source={dbPath}");
                 await connection.OpenAsync();
                 using var command = connection.CreateCommand();
                 command.CommandText = "PRAGMA wal_checkpoint(TRUNCATE);";
@@ -217,6 +224,18 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             if (_config.RetentionDays > 0)
             {
                 await CleanupOldBackups();
+            }
+        }
+
+        private async Task EnsureBucketExists()
+        {
+            var bucketExists = await _minioClient.BucketExistsAsync(
+                new BucketExistsArgs().WithBucket(_config.BucketName));
+
+            if (!bucketExists)
+            {
+                await _minioClient.MakeBucketAsync(
+                    new MakeBucketArgs().WithBucket(_config.BucketName));
             }
         }
 
