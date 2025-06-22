@@ -5,304 +5,144 @@
     <title>MinIO Backup</title>
 </head>
 <body>
-<div id="MinIOBackupConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox">
-    <div data-role="content" class="content-primary">
-        <div class="verticalSection">
-            <div class="sectionTitleContainer flex align-items-center">
-                <h2 class="sectionTitle">MinIO Backup Settings</h2>
-            </div>
-            <p>Configure your MinIO server connection and backup preferences.</p>
+<div id="MinioBackupConfigPage"
+     data-role="page"
+     class="page type-interior pluginConfigurationPage"
+     data-require="emby-input,emby-button,emby-checkbox">
+
+    <div data-role="content">
+        <div class="content-primary">
+            <h2 class="sectionTitle">MinIO Backup Instellingen</h2>
+
+            <form id="MinioBackupConfigForm">
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="MinioEndpoint">MinIO Endpoint</label>
+                    <input is="emby-input" type="text" id="MinioEndpoint" name="MinioEndpoint" />
+                    <div class="fieldDescription">Het endpoint van je MinIO server</div>
+                </div>
+
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="AccessKey">Access Key</label>
+                    <input is="emby-input" type="text" id="AccessKey" name="AccessKey" />
+                </div>
+
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="SecretKey">Secret Key</label>
+                    <input is="emby-input" type="password" id="SecretKey" name="SecretKey" />
+                </div>
+
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="BucketName">Bucket Naam</label>
+                    <input is="emby-input" type="text" id="BucketName" name="BucketName" />
+                </div>
+
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label class="emby-checkbox-label">
+                        <input id="UseSSL" name="UseSSL" type="checkbox" is="emby-checkbox" />
+                        <span>Gebruik SSL</span>
+                    </label>
+                </div>
+
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="BackupIntervalHours">Backup Interval (uren)</label>
+                    <input is="emby-input" type="number" id="BackupIntervalHours" name="BackupIntervalHours" min="1" />
+                    <div class="fieldDescription">Hoe vaak een backup wordt gemaakt</div>
+                </div>
+
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="RetentionDays">Retentieperiode (dagen)</label>
+                    <input is="emby-input" type="number" id="RetentionDays" name="RetentionDays" min="1" />
+                    <div class="fieldDescription">Hoe lang backups bewaard worden</div>
+                </div>
+
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label class="emby-checkbox-label">
+                        <input id="IncludeMetadata" name="IncludeMetadata" type="checkbox" is="emby-checkbox" />
+                        <span>Metadata meenemen</span>
+                    </label>
+                </div>
+
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label class="emby-checkbox-label">
+                        <input id="IncludeImages" name="IncludeImages" type="checkbox" is="emby-checkbox" />
+                        <span>Afbeeldingen meenemen</span>
+                    </label>
+                </div>
+
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label class="emby-checkbox-label">
+                        <input id="CompressBackups" name="CompressBackups" type="checkbox" is="emby-checkbox" />
+                        <span>Backups comprimeren</span>
+                    </label>
+                </div>
+
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="ExcludePatterns">Bestandspatronen uitsluiten</label>
+                    <textarea id="ExcludePatterns" name="ExcludePatterns" rows="4" style="width:100%; font-family: monospace;"></textarea>
+                    <div class="fieldDescription">Één patroon per regel</div>
+                </div>
+
+                <div>
+                    <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                        <span>Save</span>
+                    </button>
+                </div>
+            </form>
         </div>
-
-        <form id="MinIOBackupConfigForm">
-            <div class="verticalSection">
-                <h3 class="sectionTitle">MinIO Server</h3>
-
-                <div class="inputContainer">
-                    <input is="emby-input" type="text" id="MinIOEndpoint" label="MinIO Endpoint:" />
-                    <div class="fieldDescription">Server endpoint (e.g. minio.example.com:9000)</div>
-                </div>
-
-                <div class="inputContainer">
-                    <input is="emby-input" type="text" id="AccessKey" label="Access Key:" />
-                    <div class="fieldDescription">MinIO access key</div>
-                </div>
-
-                <div class="inputContainer">
-                    <input is="emby-input" type="password" id="SecretKey" label="Secret Key:" />
-                    <div class="fieldDescription">MinIO secret key</div>
-                </div>
-
-                <div class="inputContainer">
-                    <input is="emby-input" type="text" id="BucketName" label="Bucket Name:" />
-                    <div class="fieldDescription">S3 bucket name for backups</div>
-                </div>
-
-                <div class="checkboxContainer">
-                    <label class="emby-checkbox-label">
-                        <input is="emby-checkbox" type="checkbox" id="UseSSL" />
-                        <span>Use SSL/HTTPS</span>
-                    </label>
-                    <div class="fieldDescription">Enable secure connections</div>
-                </div>
-            </div>
-
-            <div class="verticalSection">
-                <h3 class="sectionTitle">Backup Settings</h3>
-
-                <div class="inputContainer">
-                    <input is="emby-input" type="number" id="BackupIntervalHours" label="Backup Interval (hours):" />
-                    <div class="fieldDescription">How often to create backups (1-168 hours)</div>
-                </div>
-
-                <div class="inputContainer">
-                    <input is="emby-input" type="number" id="RetentionDays" label="Retention Days:" />
-                    <div class="fieldDescription">How long to keep backups</div>
-                </div>
-
-                <div class="checkboxContainer">
-                    <label class="emby-checkbox-label">
-                        <input is="emby-checkbox" type="checkbox" id="IncludeMetadata" />
-                        <span>Include Metadata</span>
-                    </label>
-                    <div class="fieldDescription">Include metadata cache (can be large)</div>
-                </div>
-
-                <div class="checkboxContainer">
-                    <label class="emby-checkbox-label">
-                        <input is="emby-checkbox" type="checkbox" id="CompressBackups" />
-                        <span>Compress Backups</span>
-                    </label>
-                    <div class="fieldDescription">Compress backups to save space</div>
-                </div>
-            </div>
-
-            <div class="verticalSection">
-                <button is="emby-button" type="button" id="TestConnection" class="raised button-submit">
-                    <span>Test Connection</span>
-                </button>
-                <div id="TestResult" style="margin-top: 10px;"></div>
-            </div>
-
-            <div>
-                <button is="emby-button" type="submit" class="raised button-submit">
-                    <span>Save</span>
-                </button>
-                <button is="emby-button" type="button" onclick="history.back();" class="raised button-cancel">
-                    <span>Cancel</span>
-                </button>
-            </div>
-        </form>
     </div>
-</div>
 
-<script type="text/javascript">
-    (function () {
-        'use strict';
-
-        var MinIOBackupConfig = {
-            pluginUniqueId: "a4df60c5-6ab4-412a-8f79-cd28ec6f3bc6"
+    <script type="text/javascript">
+        var MinioBackupConfig = {
+            pluginUniqueId: 'a4df60c5-6ab4-412a-8f79-cd28ec6f3bc6'
         };
 
-        var pageInitialized = false;
-
-        function loadPage() {
-            if (!window.Dashboard || !window.ApiClient) {
-                console.log('Dashboard or ApiClient not ready, retrying...');
-                setTimeout(loadPage, 100);
-                return;
-            }
-
-            console.log('Loading MinIO Backup configuration...');
-            Dashboard.showLoadingMsg();
-
-            ApiClient.getPluginConfiguration(MinIOBackupConfig.pluginUniqueId).then(function (config) {
-                console.log('Loaded config:', config);
-
-                var endpoint = document.querySelector('#MinIOEndpoint');
-                var accessKey = document.querySelector('#AccessKey');
-                var secretKey = document.querySelector('#SecretKey');
-                var bucketName = document.querySelector('#BucketName');
-                var useSSL = document.querySelector('#UseSSL');
-                var backupInterval = document.querySelector('#BackupIntervalHours');
-                var retentionDays = document.querySelector('#RetentionDays');
-                var includeMetadata = document.querySelector('#IncludeMetadata');
-                var compressBackups = document.querySelector('#CompressBackups');
-
-                if (endpoint) endpoint.value = config.MinioEndpoint || '';
-                if (accessKey) accessKey.value = config.AccessKey || '';
-                if (secretKey) secretKey.value = config.SecretKey || '';
-                if (bucketName) bucketName.value = config.BucketName || 'jellyfin-backups';
-                if (useSSL) useSSL.checked = config.UseSSL !== false;
-                if (backupInterval) backupInterval.value = config.BackupIntervalHours || 24;
-                if (retentionDays) retentionDays.value = config.RetentionDays || 30;
-                if (includeMetadata) includeMetadata.checked = config.IncludeMetadata === true;
-                if (compressBackups) compressBackups.checked = config.CompressBackups !== false;
-
-                Dashboard.hideLoadingMsg();
-            }).catch(function (err) {
-                console.error('Error loading configuration:', err);
-                Dashboard.hideLoadingMsg();
-                if (window.Dashboard && Dashboard.alert) {
-                    Dashboard.alert('Error loading configuration: ' + err);
-                }
+        document.querySelector('#MinioBackupConfigPage')
+            .addEventListener('pageshow', function() {
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(MinioBackupConfig.pluginUniqueId).then(function (config) {
+                    document.querySelector('#MinioEndpoint').value = config.MinioEndpoint || '';
+                    document.querySelector('#AccessKey').value = config.AccessKey || '';
+                    document.querySelector('#SecretKey').value = config.SecretKey || '';
+                    document.querySelector('#BucketName').value = config.BucketName || '';
+                    document.querySelector('#UseSSL').checked = config.UseSSL !== false; // default true
+                    document.querySelector('#BackupIntervalHours').value = config.BackupIntervalHours || 24;
+                    document.querySelector('#RetentionDays').value = config.RetentionDays || 30;
+                    document.querySelector('#IncludeMetadata').checked = config.IncludeMetadata || false;
+                    document.querySelector('#IncludeImages').checked = config.IncludeImages || false;
+                    document.querySelector('#CompressBackups').checked = config.CompressBackups !== false; // default true
+                    document.querySelector('#ExcludePatterns').value = (config.ExcludePatterns || []).join('\n');
+                    Dashboard.hideLoadingMsg();
+                }).catch(function(error) {
+                    console.error('Error loading configuration:', error);
+                    Dashboard.hideLoadingMsg();
+                });
             });
-        }
 
-        function onSubmit(e) {
-            e.preventDefault();
-            e.stopPropagation();
+        document.querySelector('#MinioBackupConfigForm')
+            .addEventListener('submit', function(e) {
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(MinioBackupConfig.pluginUniqueId).then(function (config) {
+                    config.MinioEndpoint = document.querySelector('#MinioEndpoint').value;
+                    config.AccessKey = document.querySelector('#AccessKey').value;
+                    config.SecretKey = document.querySelector('#SecretKey').value;
+                    config.BucketName = document.querySelector('#BucketName').value;
+                    config.UseSSL = document.querySelector('#UseSSL').checked;
+                    config.BackupIntervalHours = parseInt(document.querySelector('#BackupIntervalHours').value) || 24;
+                    config.RetentionDays = parseInt(document.querySelector('#RetentionDays').value) || 30;
+                    config.IncludeMetadata = document.querySelector('#IncludeMetadata').checked;
+                    config.IncludeImages = document.querySelector('#IncludeImages').checked;
+                    config.CompressBackups = document.querySelector('#CompressBackups').checked;
+                    config.ExcludePatterns = document.querySelector('#ExcludePatterns').value.split('\n').map(x => x.trim()).filter(x => x);
 
-            if (!window.Dashboard || !window.ApiClient) {
-                console.error('Dashboard or ApiClient not available');
+                    ApiClient.updatePluginConfiguration(MinioBackupConfig.pluginUniqueId, config).then(function (result) {
+                        Dashboard.processPluginConfigurationUpdateResult(result);
+                    });
+                });
+
+                e.preventDefault();
                 return false;
-            }
-
-            Dashboard.showLoadingMsg();
-
-            var config = {
-                MinioEndpoint: (document.querySelector('#MinIOEndpoint') || {}).value || '',
-                AccessKey: (document.querySelector('#AccessKey') || {}).value || '',
-                SecretKey: (document.querySelector('#SecretKey') || {}).value || '',
-                BucketName: (document.querySelector('#BucketName') || {}).value || 'jellyfin-backups',
-                UseSSL: (document.querySelector('#UseSSL') || {}).checked !== false,
-                BackupIntervalHours: parseInt((document.querySelector('#BackupIntervalHours') || {}).value) || 24,
-                RetentionDays: parseInt((document.querySelector('#RetentionDays') || {}).value) || 30,
-                IncludeMetadata: (document.querySelector('#IncludeMetadata') || {}).checked === true,
-                IncludeImages: false,
-                CompressBackups: (document.querySelector('#CompressBackups') || {}).checked !== false,
-                ExcludePatterns: ["transcodes/*", "cache/*", "*.tmp"]
-            };
-
-            console.log('Saving config:', config);
-            console.log('Plugin ID:', MinIOBackupConfig.pluginUniqueId);
-
-            ApiClient.updatePluginConfiguration(MinIOBackupConfig.pluginUniqueId, config).then(function (result) {
-                console.log('Save result:', result);
-                Dashboard.hideLoadingMsg();
-
-                // Test of configuratie daadwerkelijk is opgeslagen
-                setTimeout(function() {
-                    fetch('/MinioBackup/DebugConfig')
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log('Current config after save:', data);
-                        })
-                        .catch(err => console.error('Debug config fetch failed:', err));
-                }, 1000);
-
-                if (Dashboard.processPluginConfigurationUpdateResult) {
-                    Dashboard.processPluginConfigurationUpdateResult(result);
-                } else {
-                    Dashboard.alert('Settings saved successfully!');
-                }
-            }).catch(function (err) {
-                console.error('Error saving configuration:', err);
-                Dashboard.hideLoadingMsg();
-                Dashboard.alert('Error saving settings: ' + err);
             });
-
-            return false;
-        }
-
-        function testConnection() {
-            var button = document.querySelector('#TestConnection');
-            var result = document.querySelector('#TestResult');
-
-            if (!button || !result) {
-                console.error('Test connection elements not found');
-                return;
-            }
-
-            button.disabled = true;
-            button.innerHTML = '<span>Testing...</span>';
-            result.innerHTML = '';
-
-            var config = {
-                MinioEndpoint: (document.querySelector('#MinIOEndpoint') || {}).value || '',
-                AccessKey: (document.querySelector('#AccessKey') || {}).value || '',
-                SecretKey: (document.querySelector('#SecretKey') || {}).value || '',
-                BucketName: (document.querySelector('#BucketName') || {}).value || '',
-                UseSSL: (document.querySelector('#UseSSL') || {}).checked !== false
-            };
-
-            ApiClient.fetch({
-                type: 'POST',
-                url: ApiClient.getUrl('MinioBackup/TestConnection'),
-                data: JSON.stringify(config),
-                contentType: 'application/json'
-            }).then(function (response) {
-                button.disabled = false;
-                button.innerHTML = '<span>Test Connection</span>';
-
-                if (response.Success) {
-                    result.innerHTML = '<div style="color: green;">✓ ' + (response.Message || 'Connection successful') + '</div>';
-                } else {
-                    result.innerHTML = '<div style="color: red;">✗ ' + (response.Error || 'Connection failed') + '</div>';
-                }
-            }).catch(function (err) {
-                console.error('Test connection error:', err);
-                button.disabled = false;
-                button.innerHTML = '<span>Test Connection</span>';
-                result.innerHTML = '<div style="color: red;">✗ Test failed: ' + err + '</div>';
-            });
-        }
-
-        function initializePage() {
-            if (pageInitialized) {
-                return;
-            }
-
-            console.log('Initializing MinIO Backup config page...');
-
-            var form = document.querySelector('#MinioBackupConfigForm');
-            var testButton = document.querySelector('#TestConnection');
-
-            if (form) {
-                form.addEventListener('submit', onSubmit);
-                console.log('Form event listener attached');
-            } else {
-                console.warn('Form not found');
-            }
-
-            if (testButton) {
-                testButton.addEventListener('click', testConnection);
-                console.log('Test button event listener attached');
-            } else {
-                console.warn('Test button not found');
-            }
-
-            pageInitialized = true;
-            loadPage();
-        }
-
-        // Multiple initialization strategies for better compatibility
-        function safeInitialize() {
-            try {
-                initializePage();
-            } catch (e) {
-                console.error('Error during page initialization:', e);
-                setTimeout(safeInitialize, 250);
-            }
-        }
-
-        // Jellyfin-specific event
-        document.addEventListener('viewshow', function() {
-            console.log('viewshow event fired');
-            setTimeout(safeInitialize, 50);
-        });
-
-        // Standard DOM events
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', safeInitialize);
-        } else {
-            setTimeout(safeInitialize, 50);
-        }
-
-        // Fallback
-        setTimeout(safeInitialize, 500);
-
-    })();
-</script>
+    </script>
+</div>
 </body>
 </html>

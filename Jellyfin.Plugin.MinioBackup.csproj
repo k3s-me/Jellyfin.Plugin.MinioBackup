@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
-        <AssemblyVersion>1.0.0.0</AssemblyVersion>
-        <FileVersion>1.0.0.0</FileVersion>
+        <AssemblyVersion>1.0.0.1</AssemblyVersion>
+        <FileVersion>1.0.0.1</FileVersion>
         <AssemblyTitle>Jellyfin MinIO Backup Plugin</AssemblyTitle>
         <Product>Jellyfin Server</Product>
         <Copyright>Copyright © Sander Sneekes 2024</Copyright>

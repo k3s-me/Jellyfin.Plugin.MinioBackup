@@ -18,7 +18,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
     {
         private readonly ILogger<BackupService> _logger;
         private readonly PluginConfiguration _config;
-        private readonly IMinioClient _minioClient;
+        private readonly IMinioClient? _minioClient;
         private readonly string _jellyfinDataPath;
 
         /// <summary>
@@ -240,6 +240,11 @@ namespace Jellyfin.Plugin.MinioBackup.Services
 
         private async Task UploadToMinio(string filePath, string objectName)
         {
+            if (_minioClient == null)
+            {
+                throw new InvalidOperationException("MinIO client not initialized");
+            }
+    
             await EnsureBucketExists();
 
             await _minioClient.PutObjectAsync(new PutObjectArgs()
@@ -252,6 +257,11 @@ namespace Jellyfin.Plugin.MinioBackup.Services
 
         private async Task EnsureBucketExists()
         {
+            if (_minioClient == null)
+            {
+                throw new InvalidOperationException("MinIO client not initialized");
+            }
+    
             var bucketExists = await _minioClient.BucketExistsAsync(
                 new BucketExistsArgs().WithBucket(_config.BucketName));
 
