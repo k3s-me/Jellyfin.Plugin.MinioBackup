@@ -11,6 +11,9 @@ using Jellyfin.Plugin.MinioBackup.Configuration;
 
 namespace Jellyfin.Plugin.MinioBackup.Services
 {
+    /// <summary>
+    /// Service for creating and managing Jellyfin backups to MinIO storage.
+    /// </summary>
     public class BackupService
     {
         private readonly ILogger<BackupService> _logger;
@@ -18,6 +21,11 @@ namespace Jellyfin.Plugin.MinioBackup.Services
         private readonly IMinioClient _minioClient;
         private readonly string _jellyfinDataPath;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BackupService"/> class.
+        /// </summary>
+        /// <param name="logger">Instance of the <see cref="ILogger{BackupService}"/> interface.</param>
+        /// <param name="config">Plugin configuration.</param>
         public BackupService(ILogger<BackupService> logger, PluginConfiguration config)
         {
             _logger = logger;
@@ -31,6 +39,10 @@ namespace Jellyfin.Plugin.MinioBackup.Services
                 .Build();
         }
 
+        /// <summary>
+        /// Creates a full backup of Jellyfin data and uploads it to MinIO.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task CreateFullBackup()
         {
             var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
@@ -63,6 +75,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             }
         }
 
+        // Rest van de methods blijven hetzelfde, alleen private methods hoeven geen XML docs
         private async Task BackupConfigurations(string backupPath)
         {
             var configBackupPath = Path.Combine(backupPath, "config");
