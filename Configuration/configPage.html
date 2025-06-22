@@ -5,7 +5,7 @@
     <title>MinIO Backup</title>
 </head>
 <body>
-<div id="MinioBackupConfigPage" data-role="page" class="page type-interior pluginConfigurationPage">
+<div id="MinIOBackupConfigPage" data-require="emby-input,emby-button,emby-checkbox" data-role="page" class="page type-interior pluginConfigurationPage">
     <div class="content-primary">
         <div class="verticalSection">
             <div class="sectionTitleContainer flex align-items-center">
@@ -14,12 +14,12 @@
             <p>Configure your MinIO server connection and backup preferences.</p>
         </div>
 
-        <form id="MinioBackupConfigForm">
+        <form id="MinIOBackupConfigForm">
             <div class="verticalSection">
                 <h3 class="sectionTitle">MinIO Server</h3>
 
                 <div class="inputContainer">
-                    <input is="emby-input" type="text" id="MinioEndpoint" label="MinIO Endpoint:" />
+                    <input is="emby-input" type="text" id="MinIOEndpoint" label="MinIO Endpoint:" />
                     <div class="fieldDescription">Server endpoint (e.g. minio.example.com:9000)</div>
                 </div>
 
@@ -98,13 +98,13 @@
 
 <script type="text/javascript">
     (function () {
-        var pluginId = "a4df60c5-6ab4-412a-8f79-cd28ec6f3bc6";
+        var MinIOBackupConfig = { pluginUniqueId: "a4df60c5-6ab4-412a-8f79-cd28ec6f3bc6" };
 
         function loadPage() {
             Dashboard.showLoadingMsg();
 
-            ApiClient.getPluginConfiguration(pluginId).then(function (config) {
-                document.querySelector('#MinioEndpoint').value = config.MinioEndpoint || '';
+            ApiClient.getPluginConfiguration(MinIOBackupConfig.pluginUniqueId).then(function (config) {
+                document.querySelector('#MinIOEndpoint').value = config.MinIOEndpoint || '';
                 document.querySelector('#AccessKey').value = config.AccessKey || '';
                 document.querySelector('#SecretKey').value = config.SecretKey || '';
                 document.querySelector('#BucketName').value = config.BucketName || 'jellyfin-backups';
@@ -128,7 +128,7 @@
             Dashboard.showLoadingMsg();
 
             var config = {
-                MinioEndpoint: document.querySelector('#MinioEndpoint').value,
+                MinIOEndpoint: document.querySelector('#MinIOEndpoint').value,
                 AccessKey: document.querySelector('#AccessKey').value,
                 SecretKey: document.querySelector('#SecretKey').value,
                 BucketName: document.querySelector('#BucketName').value,
@@ -141,7 +141,7 @@
                 ExcludePatterns: ["transcodes/*", "cache/*", "*.tmp"]
             };
 
-            ApiClient.updatePluginConfiguration(pluginId, config).then(function () {
+            ApiClient.updatePluginConfiguration(MinIOBackupConfig.pluginUniqueId, config).then(function () {
                 Dashboard.hideLoadingMsg();
                 Dashboard.alert('Settings saved!');
             }).catch(function (err) {
@@ -161,7 +161,7 @@
             result.innerHTML = '';
 
             var config = {
-                MinioEndpoint: document.querySelector('#MinioEndpoint').value,
+                MinIOEndpoint: document.querySelector('#MinIOEndpoint').value,
                 AccessKey: document.querySelector('#AccessKey').value,
                 SecretKey: document.querySelector('#SecretKey').value,
                 BucketName: document.querySelector('#BucketName').value,
