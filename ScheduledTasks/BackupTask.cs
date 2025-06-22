@@ -14,7 +14,7 @@ namespace Jellyfin.Plugin.MinioBackup.ScheduledTasks
     public class BackupTask : IScheduledTask
     {
         private readonly ILogger<BackupTask> _logger;
-        private readonly BackupService _backupService;
+        private readonly ILoggerFactory _loggerFactory;
 
         /// <summary>
         /// Gets the task name.
@@ -40,11 +40,11 @@ namespace Jellyfin.Plugin.MinioBackup.ScheduledTasks
         /// Initializes a new instance of the <see cref="BackupTask"/> class.
         /// </summary>
         /// <param name="logger">Instance of the <see cref="ILogger{BackupTask}"/> interface.</param>
-        /// <param name="backupService">Instance of the <see cref="BackupService"/> class.</param>
-        public BackupTask(ILogger<BackupTask> logger, BackupService backupService)
+        /// <param name="loggerFactory">Instance of the <see cref="ILoggerFactory"/> interface.</param>
+        public BackupTask(ILogger<BackupTask> logger, ILoggerFactory loggerFactory)
         {
             _logger = logger;
-            _backupService = backupService;
+            _loggerFactory = loggerFactory;
         }
 
         /// <summary>
@@ -59,7 +59,21 @@ namespace Jellyfin.Plugin.MinioBackup.ScheduledTasks
 
             try
             {
-                await _backupService.CreateFullBackup();
+                // Get plugin configuration
+                var plugin = Plugin.Instance;
+                if (plugin?.Configuration == null)
+                {
+                    _logger.LogError("Plugin configuration not found");
+                    return;
+                }
+
+                // Create logger for BackupService
+                var backupServiceLogger = _loggerFactory.CreateLogger<BackupService>();
+                
+                // Create backup service with correct logger type
+                var backupService = new BackupService(backupServiceLogger, plugin.Configuration);
+                
+                await backupService.CreateFullBackup();
                 progress?.Report(100);
             }
             catch (Exception ex)

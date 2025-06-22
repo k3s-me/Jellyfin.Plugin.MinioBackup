@@ -20,7 +20,7 @@
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     </PropertyGroup>
 
-    <!-- Jellyfin Dependencies - Let Jellyfin determine the Microsoft.Extensions versions -->
+    <!-- Jellyfin Dependencies -->
     <ItemGroup>
         <PackageReference Include="Jellyfin.Controller" Version="10.10.7" />
         <PackageReference Include="Jellyfin.Model" Version="10.10.7" />
@@ -30,6 +30,11 @@
     <ItemGroup>
         <PackageReference Include="Minio" Version="6.0.3" />
         <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
+    </ItemGroup>
+
+    <!-- Embedded Resources for Web UI -->
+    <ItemGroup>
+        <EmbeddedResource Include="Configuration\configPage.html" />
     </ItemGroup>
 
     <!-- Build Output -->

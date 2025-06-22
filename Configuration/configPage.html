@@ -1,0 +1,209 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>MinIO Backup Plugin Configuration</title>
+</head>
+<body>
+<div id="MinioBackupConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox,emby-select">
+    <div data-role="content">
+        <div class="content-primary">
+            <form id="MinioBackupConfigForm">
+                <div class="sectionTitleContainer flex align-items-center">
+                    <h2 class="sectionTitle">MinIO Backup Plugin Settings</h2>
+                </div>
+
+                <div class="verticalSection">
+                    <div class="sectionTitleContainer">
+                        <h3 class="sectionTitle">MinIO Server Configuration</h3>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="txtMinioEndpoint">MinIO Endpoint:</label>
+                        <input is="emby-input" type="text" id="txtMinioEndpoint" name="MinioEndpoint" placeholder="localhost:9000" />
+                        <div class="fieldDescription">MinIO server endpoint (e.g., localhost:9000 or minio.example.com:9000)</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="txtAccessKey">Access Key:</label>
+                        <input is="emby-input" type="text" id="txtAccessKey" name="AccessKey" placeholder="Enter access key" />
+                        <div class="fieldDescription">MinIO access key for authentication</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="txtSecretKey">Secret Key:</label>
+                        <input is="emby-input" type="password" id="txtSecretKey" name="SecretKey" placeholder="Enter secret key" />
+                        <div class="fieldDescription">MinIO secret key for authentication</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="txtBucketName">Bucket Name:</label>
+                        <input is="emby-input" type="text" id="txtBucketName" name="BucketName" placeholder="jellyfin-backups" />
+                        <div class="fieldDescription">MinIO bucket name where backups will be stored</div>
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input is="emby-checkbox" type="checkbox" id="chkUseSSL" name="UseSSL" />
+                            <span>Use SSL/TLS</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">Enable SSL/TLS encryption for MinIO connections</div>
+                    </div>
+                </div>
+
+                <div class="verticalSection">
+                    <div class="sectionTitleContainer">
+                        <h3 class="sectionTitle">Backup Configuration</h3>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="txtBackupIntervalHours">Backup Interval (hours):</label>
+                        <input is="emby-input" type="number" id="txtBackupIntervalHours" name="BackupIntervalHours" min="1" max="168" step="1" />
+                        <div class="fieldDescription">How often to create automatic backups (1-168 hours)</div>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="txtRetentionDays">Retention Days:</label>
+                        <input is="emby-input" type="number" id="txtRetentionDays" name="RetentionDays" min="1" max="365" step="1" />
+                        <div class="fieldDescription">How many days to keep backups before deletion</div>
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input is="emby-checkbox" type="checkbox" id="chkIncludeMetadata" name="IncludeMetadata" />
+                            <span>Include Metadata</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">Include metadata cache in backups (can be large)</div>
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input is="emby-checkbox" type="checkbox" id="chkCompressBackups" name="CompressBackups" />
+                            <span>Compress Backups</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">Compress backups to reduce storage space</div>
+                    </div>
+                </div>
+
+                <div class="verticalSection">
+                    <div class="sectionTitleContainer">
+                        <h3 class="sectionTitle">Test Connection</h3>
+                    </div>
+
+                    <div class="inputContainer">
+                        <button is="emby-button" type="button" id="btnTestConnection" class="raised button-submit emby-button">
+                            <span>Test MinIO Connection</span>
+                        </button>
+                        <div class="fieldDescription">Test the connection to your MinIO server</div>
+                    </div>
+
+                    <div id="testResult" class="fieldDescription" style="display: none;"></div>
+                </div>
+
+                <div>
+                    <button is="emby-button" type="submit" class="raised button-submit emby-button">
+                        <span>Save</span>
+                    </button>
+                    <button is="emby-button" type="button" onclick="Dashboard.navigate('configurationpage?name=plugins');" class="raised button-cancel emby-button">
+                        <span>Cancel</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    (function () {
+        var pluginId = "a4df60c5-6ab4-412a-8f79-cd28ec6f3bc6";
+
+        $('#MinioBackupConfigPage').on('pageshow', function () {
+            Dashboard.showLoadingMsg();
+            ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                document.getElementById('txtMinioEndpoint').value = config.MinioEndpoint || '';
+                document.getElementById('txtAccessKey').value = config.AccessKey || '';
+                document.getElementById('txtSecretKey').value = config.SecretKey || '';
+                document.getElementById('txtBucketName').value = config.BucketName || 'jellyfin-backups';
+                document.getElementById('chkUseSSL').checked = config.UseSSL !== false;
+                document.getElementById('txtBackupIntervalHours').value = config.BackupIntervalHours || 24;
+                document.getElementById('txtRetentionDays').value = config.RetentionDays || 30;
+                document.getElementById('chkIncludeMetadata').checked = config.IncludeMetadata === true;
+                document.getElementById('chkCompressBackups').checked = config.CompressBackups !== false;
+
+                Dashboard.hideLoadingMsg();
+            });
+        });
+
+        $('#MinioBackupConfigForm').on('submit', function (e) {
+            e.preventDefault();
+            Dashboard.showLoadingMsg();
+
+            var config = {
+                MinioEndpoint: document.getElementById('txtMinioEndpoint').value,
+                AccessKey: document.getElementById('txtAccessKey').value,
+                SecretKey: document.getElementById('txtSecretKey').value,
+                BucketName: document.getElementById('txtBucketName').value,
+                UseSSL: document.getElementById('chkUseSSL').checked,
+                BackupIntervalHours: parseInt(document.getElementById('txtBackupIntervalHours').value) || 24,
+                RetentionDays: parseInt(document.getElementById('txtRetentionDays').value) || 30,
+                IncludeMetadata: document.getElementById('chkIncludeMetadata').checked,
+                CompressBackups: document.getElementById('chkCompressBackups').checked,
+                ExcludePatterns: ["transcodes/*", "cache/*", "*.tmp"]
+            };
+
+            ApiClient.updatePluginConfiguration(pluginId, config).then(function () {
+                Dashboard.hideLoadingMsg();
+                Dashboard.alert('Settings saved successfully!');
+            }, function (error) {
+                Dashboard.hideLoadingMsg();
+                Dashboard.alert('Error saving settings: ' + (error.message || 'Unknown error'));
+            });
+        });
+
+        $('#btnTestConnection').on('click', function () {
+            var button = this;
+            var resultDiv = document.getElementById('testResult');
+
+            button.disabled = true;
+            button.innerHTML = '<span>Testing...</span>';
+            resultDiv.style.display = 'none';
+
+            var config = {
+                MinioEndpoint: document.getElementById('txtMinioEndpoint').value,
+                AccessKey: document.getElementById('txtAccessKey').value,
+                SecretKey: document.getElementById('txtSecretKey').value,
+                BucketName: document.getElementById('txtBucketName').value,
+                UseSSL: document.getElementById('chkUseSSL').checked
+            };
+
+            // Test connection via API endpoint (we'll implement this)
+            fetch('/MinioBackup/TestConnection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Emby-Token': ApiClient.accessToken()
+                },
+                body: JSON.stringify(config)
+            }).then(function(response) {
+                return response.json();
+            }).then(function(result) {
+                button.disabled = false;
+                button.innerHTML = '<span>Test MinIO Connection</span>';
+
+                if (result.Success) {
+                    resultDiv.innerHTML = '<span style="color: green;">✓ Connection successful!</span>';
+                } else {
+                    resultDiv.innerHTML = '<span style="color: red;">✗ Connection failed: ' + result.Error + '</span>';
+                }
+                resultDiv.style.display = 'block';
+            }).catch(function(error) {
+                button.disabled = false;
+                button.innerHTML = '<span>Test MinIO Connection</span>';
+                resultDiv.innerHTML = '<span style="color: red;">✗ Test failed: ' + error.message + '</span>';
+                resultDiv.style.display = 'block';
+            });
+        });
+    })();
+</script>
+</body>
+</html>

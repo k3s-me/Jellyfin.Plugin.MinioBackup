@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
@@ -10,8 +11,13 @@ namespace Jellyfin.Plugin.MinioBackup
     /// <summary>
     /// MinIO Backup Plugin for Jellyfin.
     /// </summary>
-    public class Plugin : BasePlugin<PluginConfiguration>
+    public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     {
+        /// <summary>
+        /// Gets the plugin instance.
+        /// </summary>
+        public static Plugin? Instance { get; private set; }
+
         /// <summary>
         /// Gets the plugin name.
         /// </summary>
@@ -30,6 +36,23 @@ namespace Jellyfin.Plugin.MinioBackup
         public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
             : base(applicationPaths, xmlSerializer)
         {
+            Instance = this;
+        }
+
+        /// <summary>
+        /// Gets the plugin pages for configuration.
+        /// </summary>
+        /// <returns>The plugin pages.</returns>
+        public IEnumerable<PluginPageInfo> GetPages()
+        {
+            return new[]
+            {
+                new PluginPageInfo
+                {
+                    Name = this.Name,
+                    EmbeddedResourcePath = string.Format("{0}.Configuration.configPage.html", GetType().Namespace)
+                }
+            };
         }
     }
 }
