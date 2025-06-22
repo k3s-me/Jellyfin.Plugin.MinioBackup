@@ -244,15 +244,40 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             {
                 throw new InvalidOperationException("MinIO client not initialized");
             }
-    
-            await EnsureBucketExists();
 
-            await _minioClient.PutObjectAsync(new PutObjectArgs()
-                .WithBucket(_config.BucketName)
-                .WithObject($"backups/{objectName}")
-                .WithFileName(filePath));
+            try 
+            {
+                _logger.LogInformation("Testing MinIO connection first...");
+        
+                // Test eerst de basic connectivity
+                var bucketExists = await _minioClient.BucketExistsAsync(
+                    new BucketExistsArgs().WithBucket(_config.BucketName));
+        
+                _logger.LogInformation("Bucket '{BucketName}' exists: {Exists}", _config.BucketName, bucketExists);
+        
+                if (!bucketExists)
+                {
+                    _logger.LogInformation("Creating bucket '{BucketName}'...", _config.BucketName);
+                    await _minioClient.MakeBucketAsync(
+                        new MakeBucketArgs().WithBucket(_config.BucketName));
+                    _logger.LogInformation("Bucket created successfully");
+                }
 
-            _logger.LogInformation($"Backup geüpload naar MinIO: backups/{objectName}");
+                _logger.LogInformation("Starting upload of file '{FilePath}' as '{ObjectName}'...", filePath, objectName);
+        
+                await _minioClient.PutObjectAsync(new PutObjectArgs()
+                    .WithBucket(_config.BucketName)
+                    .WithObject($"backups/{objectName}")
+                    .WithFileName(filePath));
+
+                _logger.LogInformation("Upload completed successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "MinIO operation failed. Endpoint: {Endpoint}, Bucket: {Bucket}, SSL: {SSL}", 
+                    _config.MinioEndpoint, _config.BucketName, _config.UseSSL);
+                throw;
+            }
         }
 
         private async Task EnsureBucketExists()

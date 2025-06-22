@@ -61,13 +61,14 @@ kubectl cp bin/Release/net8.0/manifest.json $NAMESPACE/$POD_NAME:$PLUGIN_DIR/
 # Copy dependencies
 echo "Copying dependencies..."
 kubectl cp bin/Release/net8.0/Minio.dll $NAMESPACE/$POD_NAME:$PLUGIN_DIR/
+kubectl cp bin/Release/net8.0/CommunityToolkit.HighPerformance.dll $NAMESPACE/$POD_NAME:$PLUGIN_DIR/
 
 # Check if SQLite DLL exists (might be in different location)
-if [ -f "bin/Release/net8.0/Microsoft.Data.Sqlite.dll" ]; then
-    kubectl cp bin/Release/net8.0/Microsoft.Data.Sqlite.dll $NAMESPACE/$POD_NAME:$PLUGIN_DIR/
-else
-    echo "Warning: Microsoft.Data.Sqlite.dll not found in expected location"
-fi
+#if [ -f "bin/Release/net8.0/Microsoft.Data.Sqlite.dll" ]; then
+#    kubectl cp bin/Release/net8.0/Microsoft.Data.Sqlite.dll $NAMESPACE/$POD_NAME:$PLUGIN_DIR/
+#else
+#    echo "Warning: Microsoft.Data.Sqlite.dll not found in expected location"
+#fi
 
 # Verify installation
 echo "Verifying installation..."
