@@ -248,8 +248,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             try 
             {
                 _logger.LogInformation("Testing MinIO connection first...");
-        
-                // Test eerst de basic connectivity
+                
                 var bucketExists = await _minioClient.BucketExistsAsync(
                     new BucketExistsArgs().WithBucket(_config.BucketName));
         
