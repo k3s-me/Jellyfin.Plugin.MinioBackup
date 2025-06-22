@@ -248,12 +248,14 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             try 
             {
                 _logger.LogInformation("Testing MinIO connection first...");
+                _logger.LogInformation("MinIO Config - Endpoint: {Endpoint}, SSL: {SSL}, Bucket: {Bucket}", 
+                    _config.MinioEndpoint, _config.UseSSL, _config.BucketName);
                 
                 var bucketExists = await _minioClient.BucketExistsAsync(
                     new BucketExistsArgs().WithBucket(_config.BucketName));
-        
+
                 _logger.LogInformation("Bucket '{BucketName}' exists: {Exists}", _config.BucketName, bucketExists);
-        
+
                 if (!bucketExists)
                 {
                     _logger.LogInformation("Creating bucket '{BucketName}'...", _config.BucketName);
@@ -262,13 +264,22 @@ namespace Jellyfin.Plugin.MinioBackup.Services
                     _logger.LogInformation("Bucket created successfully");
                 }
 
+                var fileInfo = new FileInfo(filePath);
+                _logger.LogInformation("File info - Size: {Size} bytes, Exists: {Exists}", 
+                    fileInfo.Length, fileInfo.Exists);
+
                 _logger.LogInformation("Starting upload of file '{FilePath}' as '{ObjectName}'...", filePath, objectName);
-        
-                await _minioClient.PutObjectAsync(new PutObjectArgs()
+                
+                using var fileStream = File.OpenRead(filePath);
+                var putObjectArgs = new PutObjectArgs()
                     .WithBucket(_config.BucketName)
                     .WithObject($"backups/{objectName}")
-                    .WithFileName(filePath));
+                    .WithStreamData(fileStream)
+                    .WithObjectSize(fileInfo.Length)
+                    .WithContentType("application/zip");
 
+                await _minioClient.PutObjectAsync(putObjectArgs);
+                
                 _logger.LogInformation("Upload completed successfully");
             }
             catch (Exception ex)
