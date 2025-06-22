@@ -9,25 +9,10 @@ using Jellyfin.Plugin.MinioBackup.Configuration;
 namespace Jellyfin.Plugin.MinioBackup
 {
     /// <summary>
-    /// MinIO Backup Plugin for Jellyfin.
+    /// The main plugin.
     /// </summary>
     public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     {
-        /// <summary>
-        /// Gets the plugin instance.
-        /// </summary>
-        public static Plugin? Instance { get; private set; }
-
-        /// <summary>
-        /// Gets the plugin name.
-        /// </summary>
-        public override string Name => "MinIO Backup Plugin";
-        
-        /// <summary>
-        /// Gets the plugin unique identifier.
-        /// </summary>
-        public override Guid Id => Guid.Parse("a4df60c5-6ab4-412a-8f79-cd28ec6f3bc6");
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Plugin"/> class.
         /// </summary>
@@ -39,10 +24,18 @@ namespace Jellyfin.Plugin.MinioBackup
             Instance = this;
         }
 
+        /// <inheritdoc />
+        public override string Name => "MinIO Backup";
+
+        /// <inheritdoc />
+        public override Guid Id => Guid.Parse("a4df60c5-6ab4-412a-8f79-cd28ec6f3bc6");
+
         /// <summary>
-        /// Gets the plugin pages for configuration.
+        /// Gets the current plugin instance.
         /// </summary>
-        /// <returns>The plugin pages.</returns>
+        public static Plugin? Instance { get; private set; }
+
+        /// <inheritdoc />
         public IEnumerable<PluginPageInfo> GetPages()
         {
             return new[]
@@ -50,7 +43,10 @@ namespace Jellyfin.Plugin.MinioBackup
                 new PluginPageInfo
                 {
                     Name = this.Name,
-                    EmbeddedResourcePath = string.Format("{0}.Configuration.configPage.html", GetType().Namespace)
+                    EmbeddedResourcePath = string.Format(
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        "{0}.Configuration.configPage.html",
+                        GetType().Namespace)
                 }
             };
         }

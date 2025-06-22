@@ -1,71 +1,77 @@
 ﻿using System;
+using System.Net.Mime;
 using System.Threading.Tasks;
+using MediaBrowser.Controller.Net;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Minio;
 using Minio.DataModel.Args;
-using Jellyfin.Plugin.MinioBackup.Configuration;
 
 namespace Jellyfin.Plugin.MinioBackup.Api
 {
     /// <summary>
-    /// API controller for MinIO Backup Plugin.
+    /// MinIO Backup API controller.
     /// </summary>
     [ApiController]
+    [Authorize(Policy = "RequiresElevation")]
     [Route("MinioBackup")]
-    public class MinioBackupController : ControllerBase
+    [Produces(MediaTypeNames.Application.Json)]
+    public class MinioBackupApiController : ControllerBase
     {
-        private readonly ILogger<MinioBackupController> _logger;
+        private readonly ILogger<MinioBackupApiController> _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MinioBackupController"/> class.
+        /// Initializes a new instance of the <see cref="MinioBackupApiController"/> class.
         /// </summary>
-        /// <param name="logger">Instance of the <see cref="ILogger{MinioBackupController}"/> interface.</param>
-        public MinioBackupController(ILogger<MinioBackupController> logger)
+        /// <param name="logger">Instance of the <see cref="ILogger{MinioBackupApiController}"/> interface.</param>
+        public MinioBackupApiController(ILogger<MinioBackupApiController> logger)
         {
             _logger = logger;
         }
 
         /// <summary>
-        /// Tests MinIO connection.
+        /// Tests the MinIO connection.
         /// </summary>
-        /// <param name="config">MinIO configuration to test.</param>
-        /// <returns>Test result.</returns>
+        /// <param name="request">The connection test request.</param>
+        /// <returns>The test result.</returns>
         [HttpPost("TestConnection")]
-        public async Task<ActionResult<TestConnectionResult>> TestConnection([FromBody] TestConnectionRequest config)
+        public async Task<ActionResult<TestConnectionResponse>> TestConnection([FromBody] TestConnectionRequest request)
         {
             try
             {
+                if (string.IsNullOrEmpty(request.MinioEndpoint))
+                {
+                    return new TestConnectionResponse { Success = false, Error = "MinIO endpoint is required" };
+                }
+
                 var minioClient = new MinioClient()
-                    .WithEndpoint(config.MinioEndpoint)
-                    .WithCredentials(config.AccessKey, config.SecretKey)
-                    .WithSSL(config.UseSSL)
+                    .WithEndpoint(request.MinioEndpoint)
+                    .WithCredentials(request.AccessKey, request.SecretKey)
+                    .WithSSL(request.UseSSL)
                     .Build();
 
-                // Test connection by checking if bucket exists or can be created
+                // Test connection by checking if bucket exists
                 var bucketExists = await minioClient.BucketExistsAsync(
-                    new BucketExistsArgs().WithBucket(config.BucketName));
+                    new BucketExistsArgs().WithBucket(request.BucketName));
 
-                return new TestConnectionResult 
-                { 
-                    Success = true, 
-                    Message = bucketExists ? "Connection successful! Bucket exists." : "Connection successful! Bucket will be created when needed."
-                };
+                var message = bucketExists 
+                    ? "Connection successful! Bucket exists." 
+                    : "Connection successful! Bucket will be created when needed.";
+
+                return new TestConnectionResponse { Success = true, Message = message };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "MinIO connection test failed");
-                return new TestConnectionResult 
-                { 
-                    Success = false, 
-                    Error = ex.Message 
-                };
+                return new TestConnectionResponse { Success = false, Error = ex.Message };
             }
         }
     }
 
     /// <summary>
-    /// Test connection request model.
+    /// Test connection request.
     /// </summary>
     public class TestConnectionRequest
     {
@@ -96,9 +102,9 @@ namespace Jellyfin.Plugin.MinioBackup.Api
     }
 
     /// <summary>
-    /// Test connection result model.
+    /// Test connection response.
     /// </summary>
-    public class TestConnectionResult
+    public class TestConnectionResponse
     {
         /// <summary>
         /// Gets or sets a value indicating whether the test was successful.
