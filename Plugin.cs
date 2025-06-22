@@ -5,7 +5,6 @@ using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
 using Jellyfin.Plugin.MinioBackup.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.MinioBackup
 {
@@ -14,29 +13,26 @@ namespace Jellyfin.Plugin.MinioBackup
     /// </summary>
     public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     {
-        private readonly ILogger<Plugin> _logger;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Plugin"/> class.
         /// </summary>
-        /// <param name="applicationPaths">Provides application path information.</param>
-        /// <param name="xmlSerializer">Provides XML serialization services.</param>
-        /// <param name="logger">Logger instance for diagnostics.</param>
-        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, ILogger<Plugin> logger)
+        /// <param name="applicationPaths">Instance of the <see cref="IApplicationPaths"/> interface.</param>
+        /// <param name="xmlSerializer">Instance of the <see cref="IXmlSerializer"/> interface.</param>
+        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
             : base(applicationPaths, xmlSerializer)
         {
-            _logger = logger;
             Instance = this;
-
-            _logger.LogInformation("Plugin initialized with GUID: {PluginId}", Id);
-            _logger.LogInformation("Configuration loaded: {ConfigType}", Configuration?.GetType().Name);
-            _logger.LogInformation("Config file path: {ConfigPath}", ConfigurationFilePath);
         }
 
         /// <summary>
         /// Gets the name of the plugin.
         /// </summary>
         public override string Name => "MinIO Backup";
+
+        /// <summary>
+        /// Gets the description of the plugin.
+        /// </summary>
+        public override string Description => "Backup Jellyfin data to MinIO object storage";
 
         /// <summary>
         /// Gets the unique ID of the plugin.

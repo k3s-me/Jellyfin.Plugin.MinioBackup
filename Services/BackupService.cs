@@ -30,13 +30,27 @@ namespace Jellyfin.Plugin.MinioBackup.Services
         {
             _logger = logger;
             _config = config;
+    
+            // Debug logging
+            _logger.LogInformation("BackupService initialized with config:");
+            _logger.LogInformation("MinIO Endpoint: {Endpoint}", config?.MinioEndpoint ?? "[NULL]");
+            _logger.LogInformation("Bucket Name: {BucketName}", config?.BucketName ?? "[NULL]");
+            _logger.LogInformation("Use SSL: {UseSSL}", config?.UseSSL ?? false);
+    
             _jellyfinDataPath = GetJellyfinDataPath();
 
-            _minioClient = new MinioClient()
-                .WithEndpoint(_config.MinioEndpoint)
-                .WithCredentials(_config.AccessKey, _config.SecretKey)
-                .WithSSL(_config.UseSSL)
-                .Build();
+            if (!string.IsNullOrEmpty(config?.MinioEndpoint))
+            {
+                _minioClient = new MinioClient()
+                    .WithEndpoint(config.MinioEndpoint)
+                    .WithCredentials(config.AccessKey, config.SecretKey)
+                    .WithSSL(config.UseSSL)
+                    .Build();
+            }
+            else
+            {
+                _logger.LogWarning("MinIO endpoint not configured, MinioClient not initialized");
+            }
         }
 
         /// <summary>

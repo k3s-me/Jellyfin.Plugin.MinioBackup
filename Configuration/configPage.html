@@ -5,8 +5,8 @@
     <title>MinIO Backup</title>
 </head>
 <body>
-<div id="MinIOBackupConfigPage" data-require="emby-input,emby-button,emby-checkbox" data-role="page" class="page type-interior pluginConfigurationPage">
-    <div class="content-primary">
+<div id="MinIOBackupConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox">
+    <div data-role="content" class="content-primary">
         <div class="verticalSection">
             <div class="sectionTitleContainer flex align-items-center">
                 <h2 class="sectionTitle">MinIO Backup Settings</h2>
@@ -98,26 +98,54 @@
 
 <script type="text/javascript">
     (function () {
-        var MinIOBackupConfig = { pluginUniqueId: "a4df60c5-6ab4-412a-8f79-cd28ec6f3bc6" };
+        'use strict';
+
+        var MinIOBackupConfig = {
+            pluginUniqueId: "a4df60c5-6ab4-412a-8f79-cd28ec6f3bc6"
+        };
+
+        var pageInitialized = false;
 
         function loadPage() {
+            if (!window.Dashboard || !window.ApiClient) {
+                console.log('Dashboard or ApiClient not ready, retrying...');
+                setTimeout(loadPage, 100);
+                return;
+            }
+
+            console.log('Loading MinIO Backup configuration...');
             Dashboard.showLoadingMsg();
 
             ApiClient.getPluginConfiguration(MinIOBackupConfig.pluginUniqueId).then(function (config) {
-                document.querySelector('#MinIOEndpoint').value = config.MinIOEndpoint || '';
-                document.querySelector('#AccessKey').value = config.AccessKey || '';
-                document.querySelector('#SecretKey').value = config.SecretKey || '';
-                document.querySelector('#BucketName').value = config.BucketName || 'jellyfin-backups';
-                document.querySelector('#UseSSL').checked = config.UseSSL !== false;
-                document.querySelector('#BackupIntervalHours').value = config.BackupIntervalHours || 24;
-                document.querySelector('#RetentionDays').value = config.RetentionDays || 30;
-                document.querySelector('#IncludeMetadata').checked = config.IncludeMetadata === true;
-                document.querySelector('#CompressBackups').checked = config.CompressBackups !== false;
+                console.log('Loaded config:', config);
+
+                var endpoint = document.querySelector('#MinIOEndpoint');
+                var accessKey = document.querySelector('#AccessKey');
+                var secretKey = document.querySelector('#SecretKey');
+                var bucketName = document.querySelector('#BucketName');
+                var useSSL = document.querySelector('#UseSSL');
+                var backupInterval = document.querySelector('#BackupIntervalHours');
+                var retentionDays = document.querySelector('#RetentionDays');
+                var includeMetadata = document.querySelector('#IncludeMetadata');
+                var compressBackups = document.querySelector('#CompressBackups');
+
+                if (endpoint) endpoint.value = config.MinioEndpoint || '';
+                if (accessKey) accessKey.value = config.AccessKey || '';
+                if (secretKey) secretKey.value = config.SecretKey || '';
+                if (bucketName) bucketName.value = config.BucketName || 'jellyfin-backups';
+                if (useSSL) useSSL.checked = config.UseSSL !== false;
+                if (backupInterval) backupInterval.value = config.BackupIntervalHours || 24;
+                if (retentionDays) retentionDays.value = config.RetentionDays || 30;
+                if (includeMetadata) includeMetadata.checked = config.IncludeMetadata === true;
+                if (compressBackups) compressBackups.checked = config.CompressBackups !== false;
 
                 Dashboard.hideLoadingMsg();
             }).catch(function (err) {
+                console.error('Error loading configuration:', err);
                 Dashboard.hideLoadingMsg();
-                Dashboard.alert('Error loading configuration: ' + err);
+                if (window.Dashboard && Dashboard.alert) {
+                    Dashboard.alert('Error loading configuration: ' + err);
+                }
             });
         }
 
@@ -125,26 +153,51 @@
             e.preventDefault();
             e.stopPropagation();
 
+            if (!window.Dashboard || !window.ApiClient) {
+                console.error('Dashboard or ApiClient not available');
+                return false;
+            }
+
             Dashboard.showLoadingMsg();
 
             var config = {
-                MinIOEndpoint: document.querySelector('#MinIOEndpoint').value,
-                AccessKey: document.querySelector('#AccessKey').value,
-                SecretKey: document.querySelector('#SecretKey').value,
-                BucketName: document.querySelector('#BucketName').value,
-                UseSSL: document.querySelector('#UseSSL').checked,
-                BackupIntervalHours: parseInt(document.querySelector('#BackupIntervalHours').value) || 24,
-                RetentionDays: parseInt(document.querySelector('#RetentionDays').value) || 30,
-                IncludeMetadata: document.querySelector('#IncludeMetadata').checked,
+                MinioEndpoint: (document.querySelector('#MinIOEndpoint') || {}).value || '',
+                AccessKey: (document.querySelector('#AccessKey') || {}).value || '',
+                SecretKey: (document.querySelector('#SecretKey') || {}).value || '',
+                BucketName: (document.querySelector('#BucketName') || {}).value || 'jellyfin-backups',
+                UseSSL: (document.querySelector('#UseSSL') || {}).checked !== false,
+                BackupIntervalHours: parseInt((document.querySelector('#BackupIntervalHours') || {}).value) || 24,
+                RetentionDays: parseInt((document.querySelector('#RetentionDays') || {}).value) || 30,
+                IncludeMetadata: (document.querySelector('#IncludeMetadata') || {}).checked === true,
                 IncludeImages: false,
-                CompressBackups: document.querySelector('#CompressBackups').checked,
+                CompressBackups: (document.querySelector('#CompressBackups') || {}).checked !== false,
                 ExcludePatterns: ["transcodes/*", "cache/*", "*.tmp"]
             };
 
-            ApiClient.updatePluginConfiguration(MinIOBackupConfig.pluginUniqueId, config).then(function () {
+            console.log('Saving config:', config);
+            console.log('Plugin ID:', MinIOBackupConfig.pluginUniqueId);
+
+            ApiClient.updatePluginConfiguration(MinIOBackupConfig.pluginUniqueId, config).then(function (result) {
+                console.log('Save result:', result);
                 Dashboard.hideLoadingMsg();
-                Dashboard.alert('Settings saved!');
+
+                // Test of configuratie daadwerkelijk is opgeslagen
+                setTimeout(function() {
+                    fetch('/MinioBackup/DebugConfig')
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Current config after save:', data);
+                        })
+                        .catch(err => console.error('Debug config fetch failed:', err));
+                }, 1000);
+
+                if (Dashboard.processPluginConfigurationUpdateResult) {
+                    Dashboard.processPluginConfigurationUpdateResult(result);
+                } else {
+                    Dashboard.alert('Settings saved successfully!');
+                }
             }).catch(function (err) {
+                console.error('Error saving configuration:', err);
                 Dashboard.hideLoadingMsg();
                 Dashboard.alert('Error saving settings: ' + err);
             });
@@ -156,16 +209,21 @@
             var button = document.querySelector('#TestConnection');
             var result = document.querySelector('#TestResult');
 
+            if (!button || !result) {
+                console.error('Test connection elements not found');
+                return;
+            }
+
             button.disabled = true;
             button.innerHTML = '<span>Testing...</span>';
             result.innerHTML = '';
 
             var config = {
-                MinIOEndpoint: document.querySelector('#MinIOEndpoint').value,
-                AccessKey: document.querySelector('#AccessKey').value,
-                SecretKey: document.querySelector('#SecretKey').value,
-                BucketName: document.querySelector('#BucketName').value,
-                UseSSL: document.querySelector('#UseSSL').checked
+                MinioEndpoint: (document.querySelector('#MinIOEndpoint') || {}).value || '',
+                AccessKey: (document.querySelector('#AccessKey') || {}).value || '',
+                SecretKey: (document.querySelector('#SecretKey') || {}).value || '',
+                BucketName: (document.querySelector('#BucketName') || {}).value || '',
+                UseSSL: (document.querySelector('#UseSSL') || {}).checked !== false
             };
 
             ApiClient.fetch({
@@ -183,16 +241,66 @@
                     result.innerHTML = '<div style="color: red;">✗ ' + (response.Error || 'Connection failed') + '</div>';
                 }
             }).catch(function (err) {
+                console.error('Test connection error:', err);
                 button.disabled = false;
                 button.innerHTML = '<span>Test Connection</span>';
                 result.innerHTML = '<div style="color: red;">✗ Test failed: ' + err + '</div>';
             });
         }
 
-        // Event bindings
-        document.addEventListener('viewshow', loadPage);
-        document.querySelector('#MinioBackupConfigForm').addEventListener('submit', onSubmit);
-        document.querySelector('#TestConnection').addEventListener('click', testConnection);
+        function initializePage() {
+            if (pageInitialized) {
+                return;
+            }
+
+            console.log('Initializing MinIO Backup config page...');
+
+            var form = document.querySelector('#MinioBackupConfigForm');
+            var testButton = document.querySelector('#TestConnection');
+
+            if (form) {
+                form.addEventListener('submit', onSubmit);
+                console.log('Form event listener attached');
+            } else {
+                console.warn('Form not found');
+            }
+
+            if (testButton) {
+                testButton.addEventListener('click', testConnection);
+                console.log('Test button event listener attached');
+            } else {
+                console.warn('Test button not found');
+            }
+
+            pageInitialized = true;
+            loadPage();
+        }
+
+        // Multiple initialization strategies for better compatibility
+        function safeInitialize() {
+            try {
+                initializePage();
+            } catch (e) {
+                console.error('Error during page initialization:', e);
+                setTimeout(safeInitialize, 250);
+            }
+        }
+
+        // Jellyfin-specific event
+        document.addEventListener('viewshow', function() {
+            console.log('viewshow event fired');
+            setTimeout(safeInitialize, 50);
+        });
+
+        // Standard DOM events
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', safeInitialize);
+        } else {
+            setTimeout(safeInitialize, 50);
+        }
+
+        // Fallback
+        setTimeout(safeInitialize, 500);
 
     })();
 </script>

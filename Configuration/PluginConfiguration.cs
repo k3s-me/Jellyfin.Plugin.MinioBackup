@@ -8,63 +8,33 @@ namespace Jellyfin.Plugin.MinioBackup.Configuration
     public class PluginConfiguration : BasePluginConfiguration
     {
         /// <summary>
-        /// Gets or sets the MinIO server endpoint (e.g., localhost:9000).
+        /// Initializes a new instance of the <see cref="PluginConfiguration"/> class.
         /// </summary>
-        public string MinioEndpoint { get; set; } = "";
-        
-        /// <summary>
-        /// Gets or sets the MinIO access key for authentication.
-        /// </summary>
-        public string AccessKey { get; set; } = "";
-        
-        /// <summary>
-        /// Gets or sets the MinIO secret key for authentication.
-        /// </summary>
-        public string SecretKey { get; set; } = "";
-        
-        /// <summary>
-        /// Gets or sets the MinIO bucket name where backups will be stored.
-        /// </summary>
-        public string BucketName { get; set; } = "jellyfin-backups";
-        
-        /// <summary>
-        /// Gets or sets a value indicating whether to use SSL for MinIO connections.
-        /// </summary>
-        public bool UseSSL { get; set; } = true;
-        
-        /// <summary>
-        /// Gets or sets the backup interval in hours.
-        /// </summary>
-        public int BackupIntervalHours { get; set; } = 24;
-        
-        /// <summary>
-        /// Gets or sets the number of days to retain backups before deletion.
-        /// </summary>
-        public int RetentionDays { get; set; } = 30;
-        
-        /// <summary>
-        /// Gets or sets a value indicating whether to include metadata in backups.
-        /// </summary>
-        public bool IncludeMetadata { get; set; } = false;
-        
-        /// <summary>
-        /// Gets or sets a value indicating whether to include images in backups.
-        /// </summary>
-        public bool IncludeImages { get; set; } = false;
-        
-        /// <summary>
-        /// Gets or sets a value indicating whether to compress backups.
-        /// </summary>
-        public bool CompressBackups { get; set; } = true;
-        
-        /// <summary>
-        /// Gets or sets the file patterns to exclude from backups.
-        /// </summary>
-        public string[] ExcludePatterns { get; set; } = new[] 
-        { 
-            "transcodes/*", 
-            "cache/*", 
-            "*.tmp" 
-        };
+        public PluginConfiguration()
+        {
+            MinioEndpoint = "";
+            AccessKey = "";
+            SecretKey = "";
+            BucketName = "jellyfin-backups";
+            UseSSL = true;
+            BackupIntervalHours = 24;
+            RetentionDays = 30;
+            IncludeMetadata = false;
+            IncludeImages = false;
+            CompressBackups = true;
+            ExcludePatterns = new[] { "transcodes/*", "cache/*", "*.tmp" };
+        }
+
+        public string MinioEndpoint { get; set; }
+        public string AccessKey { get; set; }
+        public string SecretKey { get; set; }
+        public string BucketName { get; set; }
+        public bool UseSSL { get; set; }
+        public int BackupIntervalHours { get; set; }
+        public int RetentionDays { get; set; }
+        public bool IncludeMetadata { get; set; }
+        public bool IncludeImages { get; set; }
+        public bool CompressBackups { get; set; }
+        public string[] ExcludePatterns { get; set; }
     }
 }
