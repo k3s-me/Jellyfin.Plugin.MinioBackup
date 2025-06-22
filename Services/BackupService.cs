@@ -8,6 +8,8 @@ using Microsoft.Data.Sqlite;
 using Minio;
 using Minio.DataModel.Args;
 using Jellyfin.Plugin.MinioBackup.Configuration;
+using System.Net.Http;
+
 
 namespace Jellyfin.Plugin.MinioBackup.Services
 {
@@ -30,22 +32,40 @@ namespace Jellyfin.Plugin.MinioBackup.Services
         {
             _logger = logger;
             _config = config;
-    
+
             // Debug logging
             _logger.LogInformation("BackupService initialized with config:");
             _logger.LogInformation("MinIO Endpoint: {Endpoint}", config?.MinioEndpoint ?? "[NULL]");
             _logger.LogInformation("Bucket Name: {BucketName}", config?.BucketName ?? "[NULL]");
+            _logger.LogInformation("Access Key: {AccessKey}", config?.AccessKey ?? "[NULL]");
+            _logger.LogInformation("Secret Key: {SecretKey}", config?.SecretKey ?? "[NULL]");
             _logger.LogInformation("Use SSL: {UseSSL}", config?.UseSSL ?? false);
-    
+
             _jellyfinDataPath = GetJellyfinDataPath();
 
             if (!string.IsNullOrEmpty(config?.MinioEndpoint))
             {
+                // Create custom HttpClientHandler to bypass SSL validation
+                var httpClientHandler = new HttpClientHandler()
+                {
+                    // This bypasses SSL certificate validation - use only for internal services
+                    ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) =>
+                    {
+                        _logger.LogInformation("SSL Certificate validation bypassed for MinIO connection");
+                        return true; // Accept all certificates
+                    }
+                };
+
+                var httpClient = new HttpClient(httpClientHandler);
+
                 _minioClient = new MinioClient()
                     .WithEndpoint(config.MinioEndpoint)
                     .WithCredentials(config.AccessKey, config.SecretKey)
                     .WithSSL(config.UseSSL)
+                    .WithHttpClient(httpClient) // Provide custom HttpClient
                     .Build();
+
+                _logger.LogInformation("MinIO client initialized with custom SSL validation bypass");
             }
             else
             {
@@ -251,6 +271,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
                 _logger.LogInformation("MinIO Config - Endpoint: {Endpoint}, SSL: {SSL}, Bucket: {Bucket}", 
                     _config.MinioEndpoint, _config.UseSSL, _config.BucketName);
                 
+                // Test basic connectivity first
                 var bucketExists = await _minioClient.BucketExistsAsync(
                     new BucketExistsArgs().WithBucket(_config.BucketName));
 
@@ -269,24 +290,92 @@ namespace Jellyfin.Plugin.MinioBackup.Services
                     fileInfo.Length, fileInfo.Exists);
 
                 _logger.LogInformation("Starting upload of file '{FilePath}' as '{ObjectName}'...", filePath, objectName);
-                
-                using var fileStream = File.OpenRead(filePath);
+
+                // Test eerst direct HTTP call naar MinIO om de response te zien
+                await TestMinioDirectCall();
+
+                // Probeer upload
                 var putObjectArgs = new PutObjectArgs()
                     .WithBucket(_config.BucketName)
                     .WithObject($"backups/{objectName}")
-                    .WithStreamData(fileStream)
-                    .WithObjectSize(fileInfo.Length)
+                    .WithFileName(filePath)
                     .WithContentType("application/zip");
 
                 await _minioClient.PutObjectAsync(putObjectArgs);
                 
                 _logger.LogInformation("Upload completed successfully");
             }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("XML document"))
+            {
+                _logger.LogError(ex, "XML parsing error occurred. This usually means MinIO returned an error response instead of expected XML.");
+                
+                // Probeer de raw response te krijgen via een directe HTTP call
+                await LogMinioErrorResponse();
+                throw;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "MinIO operation failed. Endpoint: {Endpoint}, Bucket: {Bucket}, SSL: {SSL}", 
                     _config.MinioEndpoint, _config.BucketName, _config.UseSSL);
                 throw;
+            }
+        }
+
+        private async Task TestMinioDirectCall()
+        {
+            try
+            {
+                var protocol = _config.UseSSL ? "https" : "http";
+                var url = $"{protocol}://{_config.MinioEndpoint}/";
+                
+                _logger.LogInformation("Testing direct HTTP call to: {Url}", url);
+                
+                using var httpClient = new HttpClient();
+                if (_config.UseSSL)
+                {
+                    httpClient.DefaultRequestHeaders.Add("User-Agent", "Jellyfin-MinIO-Test");
+                }
+                
+                var response = await httpClient.GetAsync(url);
+                var content = await response.Content.ReadAsStringAsync();
+                
+                _logger.LogInformation("Direct HTTP Response: Status={StatusCode}, Content Length={Length}", 
+                    response.StatusCode, content.Length);
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("Direct HTTP Error Response: {Content}", content);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Direct HTTP test failed");
+            }
+        }
+
+        private async Task LogMinioErrorResponse()
+        {
+            try
+            {
+                var protocol = _config.UseSSL ? "https" : "http";
+                var url = $"{protocol}://{_config.MinioEndpoint}/{_config.BucketName}?uploads=";
+                
+                _logger.LogInformation("Trying to get MinIO multipart upload initiation response from: {Url}", url);
+                
+                using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Authorization = 
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("AWS4-HMAC-SHA256", 
+                        "Credential=test"); // Simplified for testing
+                
+                var response = await httpClient.PostAsync(url, new StringContent(""));
+                var content = await response.Content.ReadAsStringAsync();
+                
+                _logger.LogError("MinIO Multipart Upload Error Response: Status={StatusCode}, Content={Content}", 
+                    response.StatusCode, content);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not retrieve MinIO error response details");
             }
         }
 
