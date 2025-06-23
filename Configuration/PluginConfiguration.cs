@@ -18,11 +18,13 @@ namespace Jellyfin.Plugin.MinioBackup.Configuration
             BucketName = "jellyfin";
             Region = "";
             UseSSL = true;
-            BackupIntervalHours = 24;
             RetentionDays = 30;
-            IncludeMetadata = false;
-            IncludeImages = false;
-            CompressBackups = true;
+            BackupConfig = true;
+            BackupPlugins = true;  
+            BackupData = true;
+            BackupLog = false;
+            BackupMetadata = false;
+            BackupRoot = false;
             ExcludePatterns = new[] { "transcodes/*", "cache/*", "*.tmp" };
         }
 
@@ -44,20 +46,26 @@ namespace Jellyfin.Plugin.MinioBackup.Configuration
         /// <summary>Gets or sets a value indicating whether to use SSL.</summary>
         public bool UseSSL { get; set; }
         
-        /// <summary>Gets or sets the backup interval hours.</summary>
-        public int BackupIntervalHours { get; set; }
-        
         /// <summary>Gets or sets the retention days.</summary>
         public int RetentionDays { get; set; }
         
-        /// <summary>Gets or sets a value indicating whether to include metadata.</summary>
-        public bool IncludeMetadata { get; set; }
+        /// <summary>Backup config folder.</summary>
+        public bool BackupConfig { get; set; }
         
-        /// <summary>Gets or sets a value indicating whether to include images.</summary>
-        public bool IncludeImages { get; set; }
+        /// <summary>Backup plugin folder.</summary>
+        public bool BackupPlugins { get; set; } 
         
-        /// <summary>Gets or sets a value indicating whether to compress backups.</summary>
-        public bool CompressBackups { get; set; }
+        /// <summary>Backup data folder.</summary>
+        public bool BackupData { get; set; }
+        
+        /// <summary>Backup log folder.</summary>
+        public bool BackupLog { get; set; }
+        
+        /// <summary>Backup metadata folder.</summary>
+        public bool BackupMetadata { get; set; }
+        
+        /// <summary>Backup root folder.</summary>
+        public bool BackupRoot { get; set; }
         
         /// <summary>Gets or sets the exclude patterns.</summary>
         public string[] ExcludePatterns { get; set; }

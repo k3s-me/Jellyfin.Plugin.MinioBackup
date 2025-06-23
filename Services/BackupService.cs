@@ -86,30 +86,63 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             {
                 Directory.CreateDirectory(tempBackupPath);
 
-                // Create backup of various components
-                await BackupConfigurations(tempBackupPath);
-                await BackupDatabase(tempBackupPath);
-                await BackupMetadata(tempBackupPath);
-                await BackupPlugins(tempBackupPath);
+                // Conditional backups based on config
+                if (_config.BackupConfig)
+                    await BackupConfigurations(tempBackupPath);
+            
+                if (_config.BackupPlugins)
+                    await BackupPlugins(tempBackupPath);
+            
+                if (_config.BackupData)
+                    await BackupDatabase(tempBackupPath);
+            
+                if (_config.BackupLog)
+                    await BackupLogs(tempBackupPath);
+            
+                if (_config.BackupMetadata)
+                    await BackupMetadata(tempBackupPath);
+            
+                if (_config.BackupRoot)
+                    await BackupRoot(tempBackupPath);
 
-                // Compress everything
+                // Compress and upload
                 var zipPath = $"{tempBackupPath}.zip";
                 ZipFile.CreateFromDirectory(tempBackupPath, zipPath);
-
-                // Upload to MinIO
                 await UploadToMinio(zipPath, $"full_backup_{timestamp}.zip");
 
                 _logger.LogInformation($"Full backup completed: {zipPath}");
             }
             finally
             {
-                // Cleanup
                 if (Directory.Exists(tempBackupPath))
                     Directory.Delete(tempBackupPath, true);
             }
         }
+        
+        private async Task BackupLogs(string backupPath)
+        {
+            var logsPath = Path.Combine(_jellyfinDataPath, "log");
+            var logsBackupPath = Path.Combine(backupPath, "log");
 
-        // Rest van de methods blijven hetzelfde, alleen private methods hoeven geen XML docs
+            if (Directory.Exists(logsPath))
+            {
+                Directory.CreateDirectory(logsBackupPath);
+                await CopyDirectoryAsync(logsPath, logsBackupPath, new[] { "*.log", "*.txt" });
+            }
+        }
+
+        private async Task BackupRoot(string backupPath)
+        {
+            var rootBackupPath = Path.Combine(backupPath, "root");
+            var rootPath = Path.Combine(_jellyfinDataPath, "root");
+
+            if (Directory.Exists(rootPath))
+            {
+                Directory.CreateDirectory(rootBackupPath);
+                await CopyDirectoryAsync(rootPath, rootBackupPath);
+            }
+        }
+        
         private async Task BackupConfigurations(string backupPath)
         {
             var configBackupPath = Path.Combine(backupPath, "config");
@@ -176,7 +209,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
                 Directory.CreateDirectory(metadataBackupPath);
 
                 // Selective metadata backup (this can be large!)
-                if (_config.IncludeMetadata)
+                if (_config.BackupMetadata)
                 {
                     await CopyDirectoryAsync(metadataPath, metadataBackupPath, new[]
                     {
