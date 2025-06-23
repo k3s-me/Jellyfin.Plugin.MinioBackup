@@ -6,7 +6,7 @@
         <FileVersion>1.0.0.1</FileVersion>
         <AssemblyTitle>Jellyfin MinIO Backup Plugin</AssemblyTitle>
         <Product>Jellyfin Server</Product>
-        <Copyright>Copyright © Sander Sneekes 2024</Copyright>
+        <Copyright>Copyright © Sneekes Solutions</Copyright>
         <Description>Backup Jellyfin data to MinIO object storage</Description>
 
         <!-- C# Language features -->
