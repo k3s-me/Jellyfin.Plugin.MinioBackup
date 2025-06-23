@@ -37,7 +37,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             _logger.LogInformation("MinIO Endpoint: {Endpoint}", config?.MinioEndpoint ?? "[NULL]");
             _logger.LogInformation("Bucket Name: {BucketName}", config?.BucketName ?? "[NULL]");
             _logger.LogInformation("Access Key: {AccessKey}", config?.AccessKey ?? "[NULL]");
-            _logger.LogInformation("Access Key: {Region}", config?.Region ?? "[NULL]");
+            _logger.LogInformation("Region: {Region}", config?.Region ?? "[NULL]");
             _logger.LogInformation("Use SSL: {UseSSL}", config?.UseSSL ?? false);
 
             _jellyfinDataPath = GetJellyfinDataPath();
@@ -290,11 +290,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
                     fileInfo.Length, fileInfo.Exists);
 
                 _logger.LogInformation("Starting upload of file '{FilePath}' as '{ObjectName}'...", filePath, objectName);
-
-                // Test eerst direct HTTP call naar MinIO om de response te zien
-                await TestMinioDirectCall();
-
-                // Probeer upload
+                
                 var putObjectArgs = new PutObjectArgs()
                     .WithBucket(_config.BucketName)
                     .WithObject($"backups/{objectName}")
@@ -309,7 +305,6 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             {
                 _logger.LogError(ex, "XML parsing error occurred. This usually means MinIO returned an error response instead of expected XML.");
                 
-                // Probeer de raw response te krijgen via een directe HTTP call
                 await LogMinioErrorResponse();
                 throw;
             }
@@ -320,39 +315,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
                 throw;
             }
         }
-
-        private async Task TestMinioDirectCall()
-        {
-            try
-            {
-                var protocol = _config.UseSSL ? "https" : "http";
-                var url = $"{protocol}://{_config.MinioEndpoint}/";
-                
-                _logger.LogInformation("Testing direct HTTP call to: {Url}", url);
-                
-                using var httpClient = new HttpClient();
-                if (_config.UseSSL)
-                {
-                    httpClient.DefaultRequestHeaders.Add("User-Agent", "Jellyfin-MinIO-Test");
-                }
-                
-                var response = await httpClient.GetAsync(url);
-                var content = await response.Content.ReadAsStringAsync();
-                
-                _logger.LogInformation("Direct HTTP Response: Status={StatusCode}, Content Length={Length}", 
-                    response.StatusCode, content.Length);
-                
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogError("Direct HTTP Error Response: {Content}", content);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Direct HTTP test failed");
-            }
-        }
-
+        
         private async Task LogMinioErrorResponse()
         {
             try
@@ -398,7 +361,6 @@ namespace Jellyfin.Plugin.MinioBackup.Services
 
         private string GetJellyfinDataPath()
         {
-            // Probeer verschillende locaties
             var possiblePaths = new string?[]
             {
                 Environment.GetEnvironmentVariable("JELLYFIN_DATA_DIR"),
