@@ -31,6 +31,7 @@
         <PackageReference Include="Minio" Version="6.0.1" />
         <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
         <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.3.0" />
+        <PackageReference Include="System.Reactive" Version="6.0.0" />
     </ItemGroup>
 
     <!-- Embedded Resources for Web UI -->

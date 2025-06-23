@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -153,6 +154,126 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             {
                 if (Directory.Exists(tempBackupPath))
                     Directory.Delete(tempBackupPath, true);
+            }
+        }
+        
+        /// <summary>
+        /// Cleans up old backups based on retention policy.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task CleanupOldBackups()
+        {
+            if (_minioClient == null)
+            {
+                throw new InvalidOperationException("MinIO client not initialized");
+            }
+
+            try
+            {
+                _logger.LogInformation("Starting backup cleanup. Retention: {RetentionDays} days", _config.RetentionDays);
+                
+                var cutoffDate = DateTime.UtcNow.AddDays(-_config.RetentionDays);
+                _logger.LogInformation("Removing backups older than: {CutoffDate}", cutoffDate);
+
+                var listArgs = new ListObjectsArgs()
+                    .WithBucket(_config.BucketName)
+                    .WithPrefix("backups/")
+                    .WithRecursive(true);
+
+                var deletedCount = 0;
+                var totalSize = 0L; // Gewoon long gebruiken
+                var itemsToDelete = new List<string>();
+
+                var tcs = new TaskCompletionSource<bool>();
+                var subscription = _minioClient.ListObjectsAsync(listArgs).Subscribe(
+                    onNext: item => {
+                        if (item.Key == null) return;
+
+                        var timestamp = ExtractTimestampFromFilename(item.Key);
+                        if (timestamp.HasValue && timestamp.Value < cutoffDate)
+                        {
+                            _logger.LogInformation("Found old backup for deletion: {FileName} (created: {Created}, size: {Size} bytes)", 
+                                item.Key, timestamp.Value, item.Size);
+                            
+                            itemsToDelete.Add(item.Key);
+                            totalSize += (long)item.Size; // Gewoon cast naar long
+                        }
+                    },
+                    onError: ex => {
+                        _logger.LogError(ex, "Error listing objects for cleanup");
+                        tcs.SetException(ex);
+                    },
+                    onCompleted: () => {
+                        tcs.SetResult(true);
+                    });
+
+                await tcs.Task;
+                subscription.Dispose();
+
+                // Delete the identified items
+                foreach (var key in itemsToDelete)
+                {
+                    try
+                    {
+                        var removeArgs = new RemoveObjectArgs()
+                            .WithBucket(_config.BucketName)
+                            .WithObject(key);
+
+                        await _minioClient.RemoveObjectAsync(removeArgs);
+                        deletedCount++;
+                        
+                        _logger.LogInformation("Deleted old backup: {FileName}", key);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to delete backup: {FileName}", key);
+                    }
+                }
+
+                _logger.LogInformation("Cleanup completed. Deleted {Count} backups, freed {Size} MB", 
+                    deletedCount, totalSize / 1024 / 1024);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to cleanup old backups");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Extracts timestamp from backup filename.
+        /// </summary>
+        /// <param name="filename">Filename like "backups/full_backup_20250623_020000.zip"</param>
+        /// <returns>Parsed DateTime or null if parsing failed</returns>
+        private DateTime? ExtractTimestampFromFilename(string filename)
+        {
+            try
+            {
+                // Remove path and extension: "backups/full_backup_20250623_020000.zip" -> "full_backup_20250623_020000"
+                var nameWithoutPath = Path.GetFileNameWithoutExtension(filename);
+                
+                // Find the timestamp part: "full_backup_20250623_020000" -> "20250623_020000"
+                var parts = nameWithoutPath.Split('_');
+                if (parts.Length >= 3)
+                {
+                    var datePart = parts[^2]; // Second to last part
+                    var timePart = parts[^1]; // Last part
+                    var timestampString = $"{datePart}_{timePart}";
+                    
+                    if (DateTime.TryParseExact(timestampString, "yyyyMMdd_HHmmss", 
+                        System.Globalization.CultureInfo.InvariantCulture, 
+                        System.Globalization.DateTimeStyles.None, out var result))
+                    {
+                        return result;
+                    }
+                }
+                
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to parse timestamp from filename: {Filename}", filename);
+                return null;
             }
         }
         
