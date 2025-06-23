@@ -152,12 +152,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
 
             if (Directory.Exists(configPath))
             {
-                await CopyDirectoryAsync(configPath, configBackupPath, new[]
-                {
-                    "*.xml",
-                    "*.json",
-                    "*.conf"
-                });
+                await CopyDirectoryAsync(configPath, configBackupPath);
             }
         }
 
@@ -207,26 +202,8 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             if (Directory.Exists(metadataPath))
             {
                 Directory.CreateDirectory(metadataBackupPath);
-
-                // Selective metadata backup (this can be large!)
-                if (_config.BackupMetadata)
-                {
-                    await CopyDirectoryAsync(metadataPath, metadataBackupPath, new[]
-                    {
-                        "*.xml",
-                        "*.json",
-                        "*.nfo"
-                    });
-                }
-                else
-                {
-                    // Only essential metadata
-                    await CopyDirectoryAsync(metadataPath, metadataBackupPath, new[]
-                    {
-                        "*.xml",
-                        "*.json"
-                    }, maxDepth: 2);
-                }
+                
+                await CopyDirectoryAsync(metadataPath, metadataBackupPath);
             }
         }
 
@@ -278,7 +255,6 @@ namespace Jellyfin.Plugin.MinioBackup.Services
         {
             try
             {
-                // SQLite checkpoint to empty WAL file
                 using var connection = new SqliteConnection($"Data Source={dbPath}");
                 await connection.OpenAsync();
                 using var command = connection.CreateCommand();
