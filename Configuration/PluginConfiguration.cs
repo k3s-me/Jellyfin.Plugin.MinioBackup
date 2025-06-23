@@ -15,7 +15,8 @@ namespace Jellyfin.Plugin.MinioBackup.Configuration
             MinioEndpoint = "";
             AccessKey = "";
             SecretKey = "";
-            BucketName = "jellyfin-backups";
+            BucketName = "jellyfin";
+            Region = "";
             UseSSL = true;
             BackupIntervalHours = 24;
             RetentionDays = 30;
@@ -36,6 +37,9 @@ namespace Jellyfin.Plugin.MinioBackup.Configuration
         
         /// <summary>Gets or sets the bucket name.</summary>
         public string BucketName { get; set; }
+        
+        /// <summary>Gets or sets the bucket name.</summary>
+        public string Region { get; set; }
         
         /// <summary>Gets or sets a value indicating whether to use SSL.</summary>
         public bool UseSSL { get; set; }

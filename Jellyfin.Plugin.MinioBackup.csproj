@@ -28,7 +28,7 @@
 
     <!-- External Dependencies -->
     <ItemGroup>
-        <PackageReference Include="Minio" Version="6.0.4" />
+        <PackageReference Include="Minio" Version="6.0.1" />
         <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
         <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.3.0" />
     </ItemGroup>

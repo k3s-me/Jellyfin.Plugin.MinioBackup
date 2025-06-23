@@ -12,13 +12,13 @@
 
     <div data-role="content">
         <div class="content-primary">
-            <h2 class="sectionTitle">MinIO Backup Instellingen</h2>
+            <h2 class="sectionTitle">MinIO Backup Settings</h2>
 
             <form id="MinioBackupConfigForm">
                 <div class="inputContainer">
                     <label class="inputLabel inputLabelUnfocused" for="MinioEndpoint">MinIO Endpoint</label>
                     <input is="emby-input" type="text" id="MinioEndpoint" name="MinioEndpoint" />
-                    <div class="fieldDescription">Het endpoint van je MinIO server</div>
+                    <div class="fieldDescription">The Endpoint of the MinIO server</div>
                 </div>
 
                 <div class="inputContainer">
@@ -32,14 +32,19 @@
                 </div>
 
                 <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="BucketName">Bucket Naam</label>
+                    <label class="inputLabel inputLabelUnfocused" for="BucketName">Bucket Name</label>
                     <input is="emby-input" type="text" id="BucketName" name="BucketName" />
+                </div>
+
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="Region">Region</label>
+                    <input is="emby-input" type="text" id="Region" name="Region" />
                 </div>
 
                 <div class="checkboxContainer checkboxContainer-withDescription">
                     <label class="emby-checkbox-label">
                         <input id="UseSSL" name="UseSSL" type="checkbox" is="emby-checkbox" />
-                        <span>Gebruik SSL</span>
+                        <span>Use SSL</span>
                     </label>
                 </div>
 
@@ -104,6 +109,7 @@
                     document.querySelector('#AccessKey').value = config.AccessKey || '';
                     document.querySelector('#SecretKey').value = config.SecretKey || '';
                     document.querySelector('#BucketName').value = config.BucketName || '';
+                    document.querySelector('#Region').value = config.Region || '';
                     document.querySelector('#UseSSL').checked = config.UseSSL !== false; // default true
                     document.querySelector('#BackupIntervalHours').value = config.BackupIntervalHours || 24;
                     document.querySelector('#RetentionDays').value = config.RetentionDays || 30;
@@ -126,6 +132,7 @@
                     config.AccessKey = document.querySelector('#AccessKey').value;
                     config.SecretKey = document.querySelector('#SecretKey').value;
                     config.BucketName = document.querySelector('#BucketName').value;
+                    config.Region = document.querySelector('#Region').value;
                     config.UseSSL = document.querySelector('#UseSSL').checked;
                     config.BackupIntervalHours = parseInt(document.querySelector('#BackupIntervalHours').value) || 24;
                     config.RetentionDays = parseInt(document.querySelector('#RetentionDays').value) || 30;

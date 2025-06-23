@@ -10,7 +10,6 @@ using Minio.DataModel.Args;
 using Jellyfin.Plugin.MinioBackup.Configuration;
 using System.Net.Http;
 
-
 namespace Jellyfin.Plugin.MinioBackup.Services
 {
     /// <summary>
@@ -38,7 +37,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             _logger.LogInformation("MinIO Endpoint: {Endpoint}", config?.MinioEndpoint ?? "[NULL]");
             _logger.LogInformation("Bucket Name: {BucketName}", config?.BucketName ?? "[NULL]");
             _logger.LogInformation("Access Key: {AccessKey}", config?.AccessKey ?? "[NULL]");
-            _logger.LogInformation("Secret Key: {SecretKey}", config?.SecretKey ?? "[NULL]");
+            _logger.LogInformation("Access Key: {Region}", config?.Region ?? "[NULL]");
             _logger.LogInformation("Use SSL: {UseSSL}", config?.UseSSL ?? false);
 
             _jellyfinDataPath = GetJellyfinDataPath();
@@ -62,7 +61,8 @@ namespace Jellyfin.Plugin.MinioBackup.Services
                     .WithEndpoint(config.MinioEndpoint)
                     .WithCredentials(config.AccessKey, config.SecretKey)
                     .WithSSL(config.UseSSL)
-                    .WithHttpClient(httpClient) // Provide custom HttpClient
+                    .WithHttpClient(httpClient)
+                    .WithRegion(config.Region)
                     .Build();
 
                 _logger.LogInformation("MinIO client initialized with custom SSL validation bypass");
