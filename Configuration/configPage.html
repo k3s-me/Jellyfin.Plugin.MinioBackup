@@ -49,42 +49,42 @@
                 </div>
 
                 <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="BackupIntervalHours">Backup Interval (uren)</label>
+                    <label class="inputLabel inputLabelUnfocused" for="BackupIntervalHours">Backup Interval (hours)</label>
                     <input is="emby-input" type="number" id="BackupIntervalHours" name="BackupIntervalHours" min="1" />
-                    <div class="fieldDescription">Hoe vaak een backup wordt gemaakt</div>
+                    <div class="fieldDescription">How often a backup is made</div>
                 </div>
 
                 <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="RetentionDays">Retentieperiode (dagen)</label>
+                    <label class="inputLabel inputLabelUnfocused" for="RetentionDays">Retention period (days)</label>
                     <input is="emby-input" type="number" id="RetentionDays" name="RetentionDays" min="1" />
-                    <div class="fieldDescription">Hoe lang backups bewaard worden</div>
+                    <div class="fieldDescription">How long backups are kept</div>
                 </div>
 
                 <div class="checkboxContainer checkboxContainer-withDescription">
                     <label class="emby-checkbox-label">
                         <input id="IncludeMetadata" name="IncludeMetadata" type="checkbox" is="emby-checkbox" />
-                        <span>Metadata meenemen</span>
+                        <span>Include metadata</span>
                     </label>
                 </div>
 
                 <div class="checkboxContainer checkboxContainer-withDescription">
                     <label class="emby-checkbox-label">
                         <input id="IncludeImages" name="IncludeImages" type="checkbox" is="emby-checkbox" />
-                        <span>Afbeeldingen meenemen</span>
+                        <span>Include images</span>
                     </label>
                 </div>
 
                 <div class="checkboxContainer checkboxContainer-withDescription">
                     <label class="emby-checkbox-label">
                         <input id="CompressBackups" name="CompressBackups" type="checkbox" is="emby-checkbox" />
-                        <span>Backups comprimeren</span>
+                        <span>Compress backups</span>
                     </label>
                 </div>
 
                 <div class="inputContainer">
-                    <label class="inputLabel inputLabelUnfocused" for="ExcludePatterns">Bestandspatronen uitsluiten</label>
+                    <label class="inputLabel inputLabelUnfocused" for="ExcludePatterns">Exclude file patterns</label>
                     <textarea id="ExcludePatterns" name="ExcludePatterns" rows="4" style="width:100%; font-family: monospace;"></textarea>
-                    <div class="fieldDescription">Één patroon per regel</div>
+                    <div class="fieldDescription">One pattern per line</div>
                 </div>
 
                 <div>

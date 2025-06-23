@@ -24,7 +24,7 @@ namespace Jellyfin.Plugin.MinioBackup.ScheduledTasks
         /// <summary>
         /// Gets the task description.
         /// </summary>
-        public string Description => "Maakt een backup van Jellyfin data naar MinIO";
+        public string Description => "Creates a backup of Jellyfin data to MinIO";
         
         /// <summary>
         /// Gets the task category.
@@ -78,7 +78,7 @@ namespace Jellyfin.Plugin.MinioBackup.ScheduledTasks
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Backup task gefaald");
+                _logger.LogError(ex, "Backup task failed");
                 throw;
             }
         }

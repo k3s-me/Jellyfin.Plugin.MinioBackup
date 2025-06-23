@@ -86,20 +86,20 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             {
                 Directory.CreateDirectory(tempBackupPath);
 
-                // Maak backup van verschillende componenten
+                // Create backup of various components
                 await BackupConfigurations(tempBackupPath);
                 await BackupDatabase(tempBackupPath);
                 await BackupMetadata(tempBackupPath);
                 await BackupPlugins(tempBackupPath);
 
-                // Comprimeer alles
+                // Compress everything
                 var zipPath = $"{tempBackupPath}.zip";
                 ZipFile.CreateFromDirectory(tempBackupPath, zipPath);
 
-                // Upload naar MinIO
+                // Upload to MinIO
                 await UploadToMinio(zipPath, $"full_backup_{timestamp}.zip");
 
-                _logger.LogInformation($"Volledige backup voltooid: {zipPath}");
+                _logger.LogInformation($"Full backup completed: {zipPath}");
             }
             finally
             {
@@ -137,14 +137,14 @@ namespace Jellyfin.Plugin.MinioBackup.Services
 
             if (Directory.Exists(dataPath))
             {
-                // Backup SQLite bestanden
+                // Backup SQLite files
                 var dbFiles = Directory.GetFiles(dataPath, "*.db*");
                 foreach (var dbFile in dbFiles)
                 {
                     var fileName = Path.GetFileName(dbFile);
                     var destPath = Path.Combine(dbBackupPath, fileName);
 
-                    // Voor SQLite WAL mode, probeer eerst te checkpoint
+                    // For SQLite WAL mode, try to checkpoint first
                     if (fileName.EndsWith(".db"))
                     {
                         await CheckpointDatabase(dbFile);
@@ -153,7 +153,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
                     File.Copy(dbFile, destPath, true);
                 }
 
-                // Backup andere data bestanden
+                // Backup other data files
                 var otherFiles = Directory.GetFiles(dataPath, "*")
                     .Where(f => !Path.GetFileName(f).StartsWith("jellyfin.db"));
 
@@ -175,7 +175,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             {
                 Directory.CreateDirectory(metadataBackupPath);
 
-                // Selectief metadata backup (dit kan groot zijn!)
+                // Selective metadata backup (this can be large!)
                 if (_config.IncludeMetadata)
                 {
                     await CopyDirectoryAsync(metadataPath, metadataBackupPath, new[]
@@ -187,7 +187,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
                 }
                 else
                 {
-                    // Alleen essentiële metadata
+                    // Only essential metadata
                     await CopyDirectoryAsync(metadataPath, metadataBackupPath, new[]
                     {
                         "*.xml",
@@ -245,7 +245,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
         {
             try
             {
-                // SQLite checkpoint om WAL file te legen
+                // SQLite checkpoint to empty WAL file
                 using var connection = new SqliteConnection($"Data Source={dbPath}");
                 await connection.OpenAsync();
                 using var command = connection.CreateCommand();
@@ -254,7 +254,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, $"Kon database checkpoint niet uitvoeren voor {dbPath}");
+                _logger.LogWarning(ex, $"Could not perform database checkpoint for {dbPath}");
             }
         }
 
@@ -378,7 +378,7 @@ namespace Jellyfin.Plugin.MinioBackup.Services
                 }
             }
 
-            throw new DirectoryNotFoundException("Kan Jellyfin data directory niet vinden");
+            throw new DirectoryNotFoundException("Cannot find Jellyfin data directory");
         }
     }
 }
