@@ -119,6 +119,43 @@ namespace Jellyfin.Plugin.MinioBackup.Services
             }
         }
         
+        /// <summary>
+        /// Creates a complete backup of ALL Jellyfin folders (ignores configuration settings).
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task CreateCompleteBackup()
+        {
+            var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+            var tempBackupPath = Path.Combine(Path.GetTempPath(), $"jellyfin_complete_backup_{timestamp}");
+
+            try
+            {
+                Directory.CreateDirectory(tempBackupPath);
+
+                _logger.LogInformation("Starting complete backup of ALL folders...");
+
+                // Force backup ALL folders regardless of config
+                await BackupConfigurations(tempBackupPath);
+                await BackupPlugins(tempBackupPath);
+                await BackupDatabase(tempBackupPath);
+                await BackupLogs(tempBackupPath);
+                await BackupMetadata(tempBackupPath);
+                await BackupRoot(tempBackupPath);
+
+                // Compress and upload
+                var zipPath = $"{tempBackupPath}.zip";
+                ZipFile.CreateFromDirectory(tempBackupPath, zipPath);
+                await UploadToMinio(zipPath, $"complete_backup_{timestamp}.zip");
+
+                _logger.LogInformation($"Complete backup finished: {zipPath}");
+            }
+            finally
+            {
+                if (Directory.Exists(tempBackupPath))
+                    Directory.Delete(tempBackupPath, true);
+            }
+        }
+        
         private async Task BackupLogs(string backupPath)
         {
             var logsPath = Path.Combine(_jellyfinDataPath, "log");
